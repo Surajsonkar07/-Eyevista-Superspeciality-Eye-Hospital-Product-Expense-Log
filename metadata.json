@@ -1,0 +1,7 @@
+{
+  "name": "Eyevista Superspeciality Eye Hospital - Product & Expense Log",
+  "description": "Eyevista Superspeciality Eye Hospital product and expense tracking in Indian Rupees (₹) with automatic timestamping.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
