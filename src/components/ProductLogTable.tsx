@@ -12,12 +12,14 @@ import {
   Calendar,
   Info,
   Check,
+  Trash2,
 } from 'lucide-react';
 import { ProductExpense, SortOption } from '../types';
 import { formatRupees, getAutoDateTime } from '../utils/formatters';
 import { PRODUCT_CATEGORIES } from '../data/mockData';
 import { Tooltip } from './ui/Tooltip';
 import { CustomSelect } from './ui/CustomSelect';
+import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
 interface ProductLogTableProps {
   products: ProductExpense[];
@@ -25,6 +27,7 @@ interface ProductLogTableProps {
   onAddProduct: (product: Omit<ProductExpense, 'id'>) => void;
   onEditProduct: (product: ProductExpense) => void;
   onDuplicateProduct: (product: ProductExpense) => void;
+  onDeleteProduct?: (productId: string) => void;
 }
 
 export const ProductLogTable: React.FC<ProductLogTableProps> = ({
@@ -33,7 +36,11 @@ export const ProductLogTable: React.FC<ProductLogTableProps> = ({
   onAddProduct,
   onEditProduct,
   onDuplicateProduct,
+  onDeleteProduct,
 }) => {
+  // Deleting item state for confirmation modal
+  const [deletingProduct, setDeletingProduct] = useState<ProductExpense | null>(null);
+
   // Quick inline add states
   const [quickName, setQuickName] = useState('');
   const [quickPrice, setQuickPrice] = useState<number | ''>('');
@@ -348,6 +355,19 @@ export const ProductLogTable: React.FC<ProductLogTableProps> = ({
                         <Copy className="w-3.5 h-3.5" />
                       </button>
                     </Tooltip>
+
+                    {onDeleteProduct && (
+                      <Tooltip content="Delete entry" position="top">
+                        <button
+                          type="button"
+                          onClick={() => setDeletingProduct(item)}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
+                          aria-label="Delete entry"
+                        >
+                          <Trash2 className="w-3.5 h-3.5 text-rose-500/80 hover:text-rose-600" />
+                        </button>
+                      </Tooltip>
+                    )}
                   </div>
                 </div>
 
@@ -404,6 +424,16 @@ export const ProductLogTable: React.FC<ProductLogTableProps> = ({
                         <Copy className="w-3.5 h-3.5" />
                         <span>Copy</span>
                       </button>
+                      {onDeleteProduct && (
+                        <button
+                          type="button"
+                          onClick={() => setDeletingProduct(item)}
+                          className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 active:scale-95 text-[11px] font-semibold"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>Delete</span>
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -419,6 +449,26 @@ export const ProductLogTable: React.FC<ProductLogTableProps> = ({
           </span>
         </div>
       </div>
+
+      {/* Confirmation Modal before item deletion */}
+      <ConfirmDeleteModal
+        isOpen={!!deletingProduct}
+        onClose={() => setDeletingProduct(null)}
+        onConfirm={() => {
+          if (deletingProduct && onDeleteProduct) {
+            onDeleteProduct(deletingProduct.id);
+          }
+        }}
+        title="Delete Product Entry"
+        itemName={deletingProduct?.productName}
+        itemDetails={
+          deletingProduct
+            ? `${formatRupees(deletingProduct.price)} • ${deletingProduct.category || 'General'}`
+            : undefined
+        }
+        message="Are you sure you want to delete this product entry? It will be removed permanently."
+      />
     </div>
   );
 };
+

@@ -7,9 +7,11 @@ import {
   Check,
   X,
   Layers,
+  Trash2,
 } from 'lucide-react';
 import { Sheet } from '../types';
 import { formatRupees } from '../utils/formatters';
+import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
 interface SheetTabsProps {
   sheets: Sheet[];
@@ -18,6 +20,7 @@ interface SheetTabsProps {
   onCreateSheet: (name: string) => void;
   onRenameSheet: (id: string, newName: string) => void;
   onDuplicateSheet: (id: string) => void;
+  onDeleteSheet?: (id: string) => void;
   onUpdateBudget?: (sheetId: string, limit: number) => void;
 }
 
@@ -28,11 +31,13 @@ export const SheetTabs: React.FC<SheetTabsProps> = ({
   onCreateSheet,
   onRenameSheet,
   onDuplicateSheet,
+  onDeleteSheet,
   onUpdateBudget,
 }) => {
   const [isCreating, setIsCreating] = useState(false);
   const [newSheetName, setNewSheetName] = useState('');
   const [editingSheetId, setEditingSheetId] = useState<string | null>(null);
+  const [deletingSheet, setDeletingSheet] = useState<Sheet | null>(null);
   const [renameValue, setRenameValue] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [dropdownSearch, setDropdownSearch] = useState('');
@@ -272,7 +277,7 @@ export const SheetTabs: React.FC<SheetTabsProps> = ({
                 ({formatRupees(sheetTotal)})
               </span>
 
-              {/* Quick Tab Actions (Rename, Duplicate) */}
+              {/* Quick Tab Actions (Rename, Duplicate, Delete) */}
               <div
                 className="flex items-center gap-0.5 ml-1 opacity-80 sm:opacity-60 group-hover:opacity-100 transition-opacity"
                 onClick={(e) => e.stopPropagation()}
@@ -297,6 +302,18 @@ export const SheetTabs: React.FC<SheetTabsProps> = ({
                 >
                   <Copy className="w-3.5 h-3.5 sm:w-3 sm:h-3" />
                 </button>
+                {onDeleteSheet && sheets.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => setDeletingSheet(sheet)}
+                    title="Delete Sheet"
+                    className={`p-1 rounded hover:bg-black/10 dark:hover:bg-white/10 active:scale-90 ${
+                      isActive ? 'text-rose-200 hover:text-white' : 'text-slate-400 hover:text-rose-600'
+                    }`}
+                  >
+                    <Trash2 className="w-3.5 h-3.5 sm:w-3 sm:h-3" />
+                  </button>
+                )}
               </div>
             </div>
           );
@@ -344,6 +361,26 @@ export const SheetTabs: React.FC<SheetTabsProps> = ({
           </button>
         )}
       </div>
+
+      {/* Confirmation Modal before sheet deletion */}
+      <ConfirmDeleteModal
+        isOpen={!!deletingSheet}
+        onClose={() => setDeletingSheet(null)}
+        onConfirm={() => {
+          if (deletingSheet && onDeleteSheet) {
+            onDeleteSheet(deletingSheet.id);
+          }
+        }}
+        title="Delete Department Sheet"
+        itemName={deletingSheet?.name}
+        itemDetails={
+          deletingSheet
+            ? `${deletingSheet.products.length} logged expense entries`
+            : undefined
+        }
+        message="Are you sure you want to delete this sheet? All logged products and expenses inside it will be permanently deleted."
+      />
     </div>
   );
 };
+

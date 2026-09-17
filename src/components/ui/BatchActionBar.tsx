@@ -42,7 +42,7 @@ export const BatchActionBar: React.FC<BatchActionBarProps> = ({
             </span>
             <span className="text-slate-400 dark:text-neutral-500">&bull;</span>
             <span className="font-mono font-bold text-slate-900 dark:text-white tabular-nums">
-              ${selectedTotalAmount.toLocaleString()}
+              ₹{selectedTotalAmount.toLocaleString()}
             </span>
           </div>
 

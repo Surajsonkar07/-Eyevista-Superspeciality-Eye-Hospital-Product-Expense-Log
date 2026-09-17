@@ -16,7 +16,7 @@ const DEFAULT_SHEETS: Sheet[] = [
   {
     id: 'sheet-1',
     name: 'Main OT & Consumables',
-    products: INITIAL_PRODUCTS,
+    products: [],
     createdAt: '2026-09-17T08:00:00.000Z',
     budgetLimit: 50000,
   },
@@ -189,6 +189,19 @@ export default function App() {
     );
   };
 
+  const handleDeleteProduct = (productId: string) => {
+    updateSheetsState((prev) =>
+      prev.map((s) =>
+        s.id === activeSheet.id
+          ? {
+              ...s,
+              products: s.products.filter((p) => p.id !== productId),
+            }
+          : s
+      )
+    );
+  };
+
   // Sheet Management Handlers
   const handleCreateSheet = (name: string) => {
     const newSheet: Sheet = {
@@ -223,6 +236,16 @@ export default function App() {
     };
     updateSheetsState((prev) => [...prev, newSheet]);
     setActiveSheetId(newSheet.id);
+  };
+
+  const handleDeleteSheet = (sheetId: string) => {
+    if (sheets.length <= 1) return;
+    const updatedSheets = sheets.filter((s) => s.id !== sheetId);
+    if (activeSheetId === sheetId) {
+      const nextActive = updatedSheets[0];
+      setActiveSheetId(nextActive ? nextActive.id : 'sheet-1');
+    }
+    updateSheetsState(() => updatedSheets);
   };
 
   const handleUpdateBudget = (sheetId: string, limit: number) => {
@@ -266,6 +289,7 @@ export default function App() {
           onCreateSheet={handleCreateSheet}
           onRenameSheet={handleRenameSheet}
           onDuplicateSheet={handleDuplicateSheet}
+          onDeleteSheet={handleDeleteSheet}
           onUpdateBudget={handleUpdateBudget}
         />
 
@@ -287,6 +311,7 @@ export default function App() {
                 setIsModalOpen(true);
               }}
               onDuplicateProduct={handleDuplicateProduct}
+              onDeleteProduct={handleDeleteProduct}
             />
           </>
         )}

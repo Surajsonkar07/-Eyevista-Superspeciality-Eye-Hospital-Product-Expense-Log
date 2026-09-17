@@ -23,18 +23,7 @@ const ensureDataFile = () => {
       {
         id: 'sheet-1',
         name: 'Main OT & Consumables',
-        products: [
-          {
-            id: 'prod-1',
-            productName: 'AcrySof IQ Toric IOL Pack',
-            price: 18500,
-            additionalInfo: 'Alcon - OT Suite 2 - Lot #8841A',
-            timestamp: new Date().toISOString(),
-            date: '17 Sep 2026',
-            time: '08:30 AM',
-            category: 'Medical Supplies',
-          },
-        ],
+        products: [],
         createdAt: new Date().toISOString(),
         budgetLimit: 50000,
       },
