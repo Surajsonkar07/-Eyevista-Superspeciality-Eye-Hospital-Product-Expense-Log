@@ -159,6 +159,8 @@ export const MetaModel = mongoose.models.Meta || mongoose.model('Meta', metaSche
 let isMongoConnected = false;
 let connectPromise = null;
 let lastMongoError = null;
+let lastFailedConnectTime = 0;
+const RETRY_COOLDOWN_MS = 20000; // 20s cooldown before retrying Atlas connection
 
 export function getDbStatus() {
   const readyState = mongoose.connection.readyState;
@@ -184,6 +186,11 @@ export async function connectDB() {
     return true;
   }
 
+  // If a recent attempt failed, serve immediately from local fallback during cooldown
+  if (Date.now() - lastFailedConnectTime < RETRY_COOLDOWN_MS) {
+    return false;
+  }
+
   if (connectPromise) {
     try {
       await connectPromise;
@@ -198,11 +205,12 @@ export async function connectDB() {
 
   try {
     connectPromise = mongoose.connect(mongoUri, {
-      serverSelectionTimeoutMS: 5000,
+      serverSelectionTimeoutMS: 2000,
     });
     await connectPromise;
     isMongoConnected = true;
     lastMongoError = null;
+    lastFailedConnectTime = 0;
     console.log('⚡ Connected to MongoDB Database successfully!');
 
     // Sync local sheets/users into MongoDB if database collections are empty
@@ -257,6 +265,7 @@ export async function connectDB() {
   } catch (error) {
     isMongoConnected = false;
     lastMongoError = error.message;
+    lastFailedConnectTime = Date.now();
     console.warn('⚠️ MongoDB connection error. Falling back to local JSON file storage:', error.message);
     return false;
   } finally {
