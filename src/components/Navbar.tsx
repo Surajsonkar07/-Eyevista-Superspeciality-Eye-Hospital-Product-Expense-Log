@@ -1,7 +1,26 @@
-import React from 'react';
-import { Sun, Moon, Plus, Download, Printer, BarChart3, Table, RefreshCw } from 'lucide-react';
-import { Tooltip } from './ui/Tooltip';
-import { formatRupees } from '../utils/formatters';
+import React, { useState, useRef, useEffect } from 'react';
+import {
+  Sun,
+  Moon,
+  Plus,
+  Download,
+  Printer,
+  BarChart3,
+  Table,
+  Users,
+  LogOut,
+  ChevronDown,
+  ChevronRight,
+  Check,
+  Palette,
+  FileText,
+  Shield,
+  User as UserIcon,
+  Database,
+  SlidersHorizontal,
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { User } from '../types';
 
 interface NavbarProps {
   totalSpent: number;
@@ -14,11 +33,12 @@ interface NavbarProps {
   viewMode?: 'table' | 'analytics';
   onToggleViewMode?: (mode: 'table' | 'analytics') => void;
   isSynced?: boolean;
+  currentUser?: User | null;
+  onOpenUserManagement?: () => void;
+  onLogout?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
-  totalSpent,
-  totalCount,
   onOpenAddModal,
   onExportCSV,
   onOpenPrintModal,
@@ -27,14 +47,49 @@ export const Navbar: React.FC<NavbarProps> = ({
   viewMode = 'table',
   onToggleViewMode,
   isSynced = true,
+  currentUser,
+  onOpenUserManagement,
+  onLogout,
 }) => {
+  const isAdmin = currentUser?.role === 'admin';
+
+  // Dropdown states
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [isActionsMenuOpen, setIsActionsMenuOpen] = useState(false);
+
+  // Submenu states
+  const [isThemeSubmenuOpen, setIsThemeSubmenuOpen] = useState(false);
+  const [isViewSubmenuOpen, setIsViewSubmenuOpen] = useState(false);
+
+  const profileMenuRef = useRef<HTMLDivElement>(null);
+  const actionsMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close menus on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (profileMenuRef.current && !profileMenuRef.current.contains(target)) {
+        setIsProfileMenuOpen(false);
+        setIsThemeSubmenuOpen(false);
+      }
+      if (actionsMenuRef.current && !actionsMenuRef.current.contains(target)) {
+        setIsActionsMenuOpen(false);
+        setIsViewSubmenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const userInitial = (currentUser?.fullName?.charAt(0) || currentUser?.username?.charAt(0) || 'U').toUpperCase();
+
   return (
-    <header className="sticky top-0 z-30 w-full border-b backdrop-blur-md transition-colors duration-200 bg-white/95 dark:bg-[#090D16]/95 border-slate-200/80 dark:border-slate-800 shadow-xs">
+    <header className="sticky top-0 z-30 w-full border-b backdrop-blur-md transition-colors duration-200 bg-white/95 dark:bg-[#0D111A]/95 border-slate-200/80 dark:border-[#202A3A] shadow-xs">
       <div className="max-w-6xl mx-auto px-3 sm:px-6">
         <div className="flex items-center justify-between h-14 sm:h-16 gap-2">
-          {/* Brand Logo & Name */}
-          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-            <div className="h-9 sm:h-11 px-1.5 py-1 rounded-xl bg-white dark:bg-neutral-900 border border-stone-200/80 dark:border-neutral-800 flex items-center justify-center shadow-xs overflow-hidden shrink-0">
+          {/* 1. Brand Logo & Hospital Title */}
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            <div className="h-9 sm:h-11 px-1.5 py-1 rounded-xl bg-white dark:bg-[#111722] border border-stone-200/80 dark:border-[#202A3A] flex items-center justify-center shadow-xs overflow-hidden shrink-0">
               <img
                 src="/eyevista-logo.png"
                 alt="Eyevista Superspeciality Eye Hospital Logo"
@@ -47,103 +102,439 @@ export const Navbar: React.FC<NavbarProps> = ({
               />
             </div>
             <div className="min-w-0">
-              <div className="flex items-center gap-1.5 flex-wrap sm:flex-nowrap">
-                <span className="text-sm sm:text-lg font-bold font-display tracking-tight text-slate-900 dark:text-white leading-tight truncate">
-                  Eyevista
-                </span>
-                <span className="inline-flex items-center px-1.5 py-0.5 text-[9px] sm:text-[11px] font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 rounded-md border border-emerald-300/60 dark:border-emerald-800 font-mono shrink-0">
-                  Rupees (₹)
-                </span>
-              </div>
-              <p className="text-[10px] sm:text-[11px] font-medium text-slate-600 dark:text-slate-300 tracking-tight leading-tight truncate hidden xs:block">
+              <span className="text-base sm:text-xl font-extrabold font-display tracking-tight text-slate-900 dark:text-[#F1F5F9] leading-tight block">
+                Eyevista
+              </span>
+              <p className="text-[10px] sm:text-[11px] font-medium text-slate-500 dark:text-[#718096] tracking-tight leading-tight truncate hidden xs:block">
                 Superspeciality Eye Hospital
               </p>
             </div>
           </div>
 
-          {/* Right Action Controls */}
-          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
-            {/* View Mode Toggle (Log Table vs Analytics) */}
+          {/* 2. Right Controls: View Switcher, Actions Menu, Submit, and Profile Menu */}
+          <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+            {/* View Mode Toggle Segmented Control (Log vs Analytics) */}
             {onToggleViewMode && (
-              <div className="flex items-center p-0.5 bg-stone-200/80 dark:bg-neutral-800 rounded-xl border border-stone-300/80 dark:border-neutral-700">
+              <div className="hidden sm:flex items-center p-0.5 bg-stone-200/80 dark:bg-[#111722] rounded-xl border border-stone-300/80 dark:border-[#202A3A]">
                 <button
                   type="button"
                   onClick={() => onToggleViewMode('table')}
-                  className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                     viewMode === 'table'
-                      ? 'bg-white dark:bg-neutral-900 text-slate-900 dark:text-white shadow-xs'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                      ? 'bg-white dark:bg-[#1A2A4A] text-slate-900 dark:text-[#F1F5F9] dark:border dark:border-[#4F7CFF]/35 shadow-xs'
+                      : 'text-slate-600 dark:text-[#718096] hover:text-slate-900 dark:hover:text-[#A7B2C4]'
                   }`}
                   title="Expense Log Table"
                 >
-                  <Table className="w-3.5 h-3.5" />
-                  <span className="hidden md:inline">Log</span>
+                  <Table className="w-3.5 h-3.5 text-blue-600 dark:text-[#4F7CFF]" />
+                  <span>Log</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => onToggleViewMode('analytics')}
-                  className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                     viewMode === 'analytics'
-                      ? 'bg-white dark:bg-neutral-900 text-slate-900 dark:text-white shadow-xs'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                      ? 'bg-white dark:bg-[#1A2A4A] text-slate-900 dark:text-[#F1F5F9] dark:border dark:border-[#4F7CFF]/35 shadow-xs'
+                      : 'text-slate-600 dark:text-[#718096] hover:text-slate-900 dark:hover:text-[#A7B2C4]'
                   }`}
-                  title="Visual Analytics & Donut Charts"
+                  title="Visual Analytics & Charts"
                 >
-                  <BarChart3 className="w-3.5 h-3.5" />
-                  <span className="hidden md:inline">Analytics</span>
+                  <BarChart3 className="w-3.5 h-3.5 text-indigo-600 dark:text-[#638DFF]" />
+                  <span>Analytics</span>
                 </button>
               </div>
             )}
 
-            {/* Print Official Report Button */}
-            {onOpenPrintModal && (
-              <Tooltip content="Print official hospital expense report" position="bottom">
-                <button
-                  type="button"
-                  onClick={onOpenPrintModal}
-                  className="hidden sm:flex items-center justify-center p-2 sm:px-3 sm:py-1.5 rounded-lg text-xs font-semibold bg-white dark:bg-neutral-900 text-slate-700 dark:text-slate-200 border border-stone-300/80 dark:border-neutral-800 hover:bg-stone-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer active:scale-95"
-                  aria-label="Print Hospital Report"
-                >
-                  <Printer className="w-4 h-4 sm:w-3.5 sm:h-3.5 text-emerald-600 dark:text-emerald-400" />
-                  <span className="hidden lg:inline ml-1.5">Print Report</span>
-                </button>
-              </Tooltip>
-            )}
-
-            {/* Export CSV button */}
-            <Tooltip content="Export product log to CSV" position="bottom">
+            {/* Actions & Reports Menu (Dropdown with Submenu) */}
+            <div className="relative" ref={actionsMenuRef}>
               <button
                 type="button"
-                onClick={onExportCSV}
-                className="hidden md:flex items-center justify-center p-2 sm:px-3 sm:py-1.5 rounded-lg text-xs font-semibold bg-white dark:bg-neutral-900 text-slate-700 dark:text-slate-200 border border-stone-300/80 dark:border-neutral-800 hover:bg-stone-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer active:scale-95"
-                aria-label="Export CSV"
+                onClick={() => {
+                  setIsActionsMenuOpen(!isActionsMenuOpen);
+                  setIsProfileMenuOpen(false);
+                }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+                  isActionsMenuOpen
+                    ? 'bg-stone-200/80 dark:bg-[#151D2A] border-stone-400 dark:border-[#344158] text-slate-900 dark:text-[#F1F5F9]'
+                    : 'bg-white dark:bg-[#111722] border-stone-300/80 dark:border-[#202A3A] hover:bg-stone-100 dark:hover:bg-[#151D2A] dark:hover:border-[#344158] text-slate-700 dark:text-[#A7B2C4]'
+                }`}
+                aria-expanded={isActionsMenuOpen}
+                aria-label="Actions & Reports Menu"
               >
-                <Download className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
-                <span className="hidden sm:inline ml-1.5">Export</span>
+                <FileText className="w-3.5 h-3.5 text-[#4F7CFF]" />
+                <span className="hidden md:inline">Reports &amp; Tools</span>
+                <span className="md:hidden">Tools</span>
+                <ChevronDown
+                  className={`w-3.5 h-3.5 text-slate-400 dark:text-[#718096] transition-transform duration-200 ${
+                    isActionsMenuOpen ? 'rotate-180 text-blue-600 dark:text-[#4F7CFF]' : ''
+                  }`}
+                />
               </button>
-            </Tooltip>
 
-            {/* Dark / Light Mode Toggle */}
-            <Tooltip content={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'} position="bottom">
-              <button
-                type="button"
-                onClick={onToggleDarkMode}
-                className="p-2 sm:p-2 rounded-lg text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 hover:bg-stone-200/60 dark:hover:bg-neutral-900 transition-colors cursor-pointer active:scale-95 min-h-[38px] min-w-[38px] sm:min-h-0 sm:min-w-0 flex items-center justify-center"
-                aria-label="Toggle Dark Mode"
-              >
-                {darkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-700" />}
-              </button>
-            </Tooltip>
+              {/* Actions Menu Dropdown */}
+              <AnimatePresence>
+                {isActionsMenuOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95, y: -4 }}
+                    animate={{ opacity: 1, scale: 1, y: 4 }}
+                    exit={{ opacity: 0, scale: 0.95, y: -4 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute right-0 z-50 mt-1.5 w-64 rounded-2xl bg-white dark:bg-[#111722] border border-stone-200 dark:border-[#202A3A] shadow-2xl dark:shadow-[0_12px_40px_rgba(0,0,0,0.25)] p-1.5 space-y-1"
+                    role="menu"
+                  >
+                    <div className="px-3 py-2 border-b border-stone-100 dark:border-[#202A3A]">
+                      <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-[#718096]">
+                        Reports &amp; Export
+                      </p>
+                    </div>
 
-            {/* Submit Product Button */}
+                    {/* Print Official Report */}
+                    {onOpenPrintModal && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onOpenPrintModal();
+                          setIsActionsMenuOpen(false);
+                        }}
+                        className="w-full flex items-start gap-2.5 px-2.5 py-2 rounded-xl text-left hover:bg-stone-100 dark:hover:bg-[#151D2A] transition-all cursor-pointer group"
+                      >
+                        <div className="w-7 h-7 rounded-lg bg-emerald-50 dark:bg-[rgba(34,201,151,0.12)] text-emerald-600 dark:text-[#22C997] border border-transparent dark:border-[rgba(34,201,151,0.25)] flex items-center justify-center shrink-0 mt-0.5">
+                          <Printer className="w-3.5 h-3.5" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-semibold text-slate-800 dark:text-[#F1F5F9] group-hover:text-blue-600 dark:group-hover:text-[#4F7CFF]">
+                            Print Official Report
+                          </p>
+                          <p className="text-[10px] text-slate-500 dark:text-[#718096]">
+                            A4 letterhead expense breakdown
+                          </p>
+                        </div>
+                      </button>
+                    )}
+
+                    {/* Export CSV */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onExportCSV();
+                        setIsActionsMenuOpen(false);
+                      }}
+                      className="w-full flex items-start gap-2.5 px-2.5 py-2 rounded-xl text-left hover:bg-stone-100 dark:hover:bg-[#151D2A] transition-all cursor-pointer group"
+                    >
+                      <div className="w-7 h-7 rounded-lg bg-blue-50 dark:bg-[rgba(79,124,255,0.12)] text-blue-600 dark:text-[#4F7CFF] border border-transparent dark:border-[rgba(79,124,255,0.25)] flex items-center justify-center shrink-0 mt-0.5">
+                        <Download className="w-3.5 h-3.5" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-slate-800 dark:text-[#F1F5F9] group-hover:text-blue-600 dark:group-hover:text-[#4F7CFF]">
+                          Export Spreadsheet (CSV)
+                        </p>
+                        <p className="text-[10px] text-slate-500 dark:text-[#718096]">
+                          Download product logs &amp; amounts
+                        </p>
+                      </div>
+                    </button>
+
+                    {/* View Switcher Submenu (Mobile and Desktop) */}
+                    {onToggleViewMode && (
+                      <div className="pt-1 border-t border-stone-100 dark:border-[#202A3A]">
+                        <button
+                          type="button"
+                          onClick={() => setIsViewSubmenuOpen(!isViewSubmenuOpen)}
+                          className="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left hover:bg-stone-100 dark:hover:bg-[#151D2A] transition-all cursor-pointer"
+                        >
+                          <div className="flex items-center gap-2">
+                            <SlidersHorizontal className="w-4 h-4 text-slate-500 dark:text-[#718096]" />
+                            <span className="text-xs font-semibold text-slate-800 dark:text-[#F1F5F9]">
+                              Dashboard View
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <span className="text-[10px] font-mono font-medium text-blue-600 dark:text-[#4F7CFF] capitalize">
+                              {viewMode}
+                            </span>
+                            <ChevronRight
+                              className={`w-3.5 h-3.5 text-slate-400 dark:text-[#718096] transition-transform duration-200 ${
+                                isViewSubmenuOpen ? 'rotate-90' : ''
+                              }`}
+                            />
+                          </div>
+                        </button>
+
+                        {/* View Submenu Options */}
+                        <AnimatePresence>
+                          {isViewSubmenuOpen && (
+                            <motion.div
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: 'auto' }}
+                              exit={{ opacity: 0, height: 0 }}
+                              transition={{ duration: 0.15 }}
+                              className="overflow-hidden pl-3 pr-1 py-1 space-y-1 bg-stone-50/70 dark:bg-[#0D131E] rounded-xl border border-stone-200/60 dark:border-[#202A3A]"
+                            >
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  onToggleViewMode('table');
+                                  setIsActionsMenuOpen(false);
+                                }}
+                                className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-xs font-medium cursor-pointer ${
+                                  viewMode === 'table'
+                                    ? 'text-blue-600 dark:text-[#4F7CFF] font-bold'
+                                    : 'text-slate-600 dark:text-[#A7B2C4] hover:text-slate-900 dark:hover:text-[#F1F5F9]'
+                                }`}
+                              >
+                                <div className="flex items-center gap-2">
+                                  <Table className="w-3.5 h-3.5" />
+                                  <span>Log Table View</span>
+                                </div>
+                                {viewMode === 'table' && <Check className="w-3.5 h-3.5" />}
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  onToggleViewMode('analytics');
+                                  setIsActionsMenuOpen(false);
+                                }}
+                                className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-xs font-medium cursor-pointer ${
+                                  viewMode === 'analytics'
+                                    ? 'text-blue-600 dark:text-[#4F7CFF] font-bold'
+                                    : 'text-slate-600 dark:text-[#A7B2C4] hover:text-slate-900 dark:hover:text-[#F1F5F9]'
+                                }`}
+                              >
+                                <div className="flex items-center gap-2">
+                                  <BarChart3 className="w-3.5 h-3.5" />
+                                  <span>Analytics &amp; Charts</span>
+                                </div>
+                                {viewMode === 'analytics' && <Check className="w-3.5 h-3.5" />}
+                              </button>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Quick Submit Button */}
             <button
               type="button"
               onClick={onOpenAddModal}
-              className="flex items-center justify-center gap-1.5 px-3 sm:px-3.5 py-1.5 sm:py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 active:scale-[0.97] text-white text-xs sm:text-sm font-semibold transition-all shadow-xs cursor-pointer min-h-[38px] sm:min-h-0"
+              className="flex items-center justify-center gap-1.5 px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-[9px] bg-[#4F7CFF] hover:bg-[#638DFF] active:scale-[0.98] text-white text-xs sm:text-sm font-semibold transition-all shadow-[0_2px_8px_rgba(79,124,255,0.25)] cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               <span>Submit</span>
             </button>
+
+            {/* User Profile Menu & Submenus */}
+            {currentUser && (
+              <div className="relative" ref={profileMenuRef}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsProfileMenuOpen(!isProfileMenuOpen);
+                    setIsActionsMenuOpen(false);
+                  }}
+                  className={`flex items-center gap-2 p-1 sm:px-2.5 sm:py-1.5 rounded-xl border transition-all cursor-pointer ${
+                    isProfileMenuOpen
+                      ? 'bg-stone-100 dark:bg-[#151D2A] border-stone-300 dark:border-[#344158]'
+                      : 'bg-white dark:bg-[#111722] border-stone-200/90 dark:border-[#202A3A] hover:bg-stone-50 dark:hover:bg-[#151D2A] dark:hover:border-[#344158]'
+                  }`}
+                  aria-expanded={isProfileMenuOpen}
+                  aria-label="User Profile and Settings Menu"
+                >
+                  {/* User Initial Avatar Badge */}
+                  <div className="w-7 h-7 rounded-lg bg-blue-100 dark:bg-[#1A2A4A] text-blue-700 dark:text-[#4F7CFF] border border-blue-200 dark:border-[rgba(79,124,255,0.25)] flex items-center justify-center font-bold text-xs shrink-0">
+                    {userInitial}
+                  </div>
+
+                  <div className="hidden sm:block text-left min-w-0">
+                    <p className="text-xs font-bold text-slate-800 dark:text-[#F1F5F9] leading-tight truncate max-w-[100px]">
+                      {currentUser.fullName || currentUser.username}
+                    </p>
+                    <p className="text-[10px] text-slate-500 dark:text-[#718096] leading-tight capitalize">
+                      {isAdmin ? '👑 Admin' : 'Staff'}
+                    </p>
+                  </div>
+
+                  <ChevronDown
+                    className={`w-3.5 h-3.5 text-slate-400 dark:text-[#718096] transition-transform duration-200 ${
+                      isProfileMenuOpen ? 'rotate-180 text-blue-600 dark:text-[#4F7CFF]' : ''
+                    }`}
+                  />
+                </button>
+
+                {/* Profile Dropdown Popover */}
+                <AnimatePresence>
+                  {isProfileMenuOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95, y: -4 }}
+                      animate={{ opacity: 1, scale: 1, y: 4 }}
+                      exit={{ opacity: 0, scale: 0.95, y: -4 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute right-0 z-50 mt-1.5 w-72 rounded-2xl bg-white dark:bg-[#111722] border border-stone-200 dark:border-[#202A3A] shadow-2xl dark:shadow-[0_12px_40px_rgba(0,0,0,0.25)] p-2 space-y-1.5"
+                      role="menu"
+                    >
+                      {/* User Info Header Card */}
+                      <div className="p-2.5 rounded-xl bg-stone-50 dark:bg-[#0D131E] border border-stone-200/80 dark:border-[#202A3A] flex items-center gap-2.5">
+                        <div className="w-9 h-9 rounded-xl bg-blue-100 dark:bg-[#1A2A4A] text-blue-700 dark:text-[#4F7CFF] border border-blue-200 dark:border-[rgba(79,124,255,0.25)] flex items-center justify-center font-bold text-sm shrink-0">
+                          {userInitial}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5">
+                            <h4 className="text-xs font-bold text-slate-900 dark:text-[#F1F5F9] truncate font-display">
+                              {currentUser.fullName}
+                            </h4>
+                            <span
+                              className={`px-1.5 py-0.2 rounded text-[9px] font-semibold shrink-0 ${
+                                isAdmin
+                                  ? 'bg-amber-100 dark:bg-[rgba(245,184,61,0.12)] text-amber-700 dark:text-[#F5B83D] border border-amber-200 dark:border-[rgba(245,184,61,0.25)]'
+                                  : 'bg-blue-100 dark:bg-[rgba(79,124,255,0.12)] text-blue-700 dark:text-[#638DFF] border border-blue-200 dark:border-[rgba(79,124,255,0.25)]'
+                              }`}
+                            >
+                              {isAdmin ? 'Admin' : 'Staff'}
+                            </span>
+                          </div>
+                          <p className="text-[11px] font-mono text-slate-500 dark:text-[#718096] truncate">
+                            @{currentUser.username} &bull; {currentUser.department || 'Hospital'}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Submenu: Appearance / Theme Selector */}
+                      <div className="pt-1">
+                        <button
+                          type="button"
+                          onClick={() => setIsThemeSubmenuOpen(!isThemeSubmenuOpen)}
+                          className="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-left hover:bg-stone-100 dark:hover:bg-[#151D2A] transition-all cursor-pointer group"
+                        >
+                          <div className="flex items-center gap-2">
+                            <Palette className="w-4 h-4 text-[#4F7CFF]" />
+                            <div>
+                              <p className="text-xs font-semibold text-slate-800 dark:text-[#F1F5F9]">
+                                Appearance / Theme
+                              </p>
+                              <p className="text-[10px] text-slate-500 dark:text-[#718096]">
+                                Current: {darkMode ? 'Dark Theme (Navy)' : 'Light Theme'}
+                              </p>
+                            </div>
+                          </div>
+                          <ChevronRight
+                            className={`w-3.5 h-3.5 text-slate-400 dark:text-[#718096] transition-transform duration-200 ${
+                              isThemeSubmenuOpen ? 'rotate-90' : ''
+                            }`}
+                          />
+                        </button>
+
+                        {/* Theme Submenu Items */}
+                        <AnimatePresence>
+                          {isThemeSubmenuOpen && (
+                            <motion.div
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: 'auto' }}
+                              exit={{ opacity: 0, height: 0 }}
+                              transition={{ duration: 0.15 }}
+                              className="overflow-hidden pl-3 pr-1 py-1 mt-1 space-y-1 bg-stone-50/70 dark:bg-[#0D131E] rounded-xl border border-stone-200/60 dark:border-[#202A3A]"
+                            >
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (darkMode) onToggleDarkMode();
+                                }}
+                                className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium cursor-pointer ${
+                                  !darkMode
+                                    ? 'bg-white dark:bg-[#151D2A] text-blue-600 dark:text-[#4F7CFF] font-bold shadow-xs'
+                                    : 'text-slate-600 dark:text-[#A7B2C4] hover:text-slate-900 dark:hover:text-[#F1F5F9]'
+                                }`}
+                              >
+                                <div className="flex items-center gap-2">
+                                  <Sun className="w-3.5 h-3.5 text-amber-500" />
+                                  <span>Light Mode</span>
+                                </div>
+                                {!darkMode && <Check className="w-3.5 h-3.5 text-blue-600 dark:text-[#4F7CFF]" />}
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (!darkMode) onToggleDarkMode();
+                                }}
+                                className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium cursor-pointer ${
+                                  darkMode
+                                    ? 'bg-white dark:bg-[#151D2A] text-blue-600 dark:text-[#4F7CFF] font-bold shadow-xs'
+                                    : 'text-slate-600 dark:text-[#A7B2C4] hover:text-slate-900 dark:hover:text-[#F1F5F9]'
+                                }`}
+                              >
+                                <div className="flex items-center gap-2">
+                                  <Moon className="w-3.5 h-3.5 text-blue-400" />
+                                  <span>Dark Mode (Enterprise)</span>
+                                </div>
+                                {darkMode && <Check className="w-3.5 h-3.5 text-blue-600 dark:text-[#4F7CFF]" />}
+                              </button>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+
+                      {/* Admin User Management Option */}
+                      {isAdmin && onOpenUserManagement && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            onOpenUserManagement();
+                            setIsProfileMenuOpen(false);
+                          }}
+                          className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-left hover:bg-stone-100 dark:hover:bg-[#151D2A] transition-all cursor-pointer group"
+                        >
+                          <div className="w-7 h-7 rounded-lg bg-amber-50 dark:bg-[rgba(245,184,61,0.12)] text-amber-600 dark:text-[#F5B83D] border border-transparent dark:border-[rgba(245,184,61,0.25)] flex items-center justify-center shrink-0">
+                            <Users className="w-3.5 h-3.5" />
+                          </div>
+                          <div>
+                            <p className="text-xs font-semibold text-slate-800 dark:text-[#F1F5F9] group-hover:text-amber-600 dark:group-hover:text-[#F5B83D]">
+                              Manage Staff Users
+                            </p>
+                            <p className="text-[10px] text-slate-500 dark:text-[#718096]">
+                              Add, edit, or remove hospital credentials
+                            </p>
+                          </div>
+                        </button>
+                      )}
+
+                      {/* System Cloud Sync Status */}
+                      <div className="px-2.5 py-1.5 flex items-center justify-between text-[11px] text-slate-500 dark:text-[#718096]">
+                        <div className="flex items-center gap-1.5">
+                          <Database className="w-3.5 h-3.5 text-slate-400 dark:text-[#718096]" />
+                          <span>Storage Sync</span>
+                        </div>
+                        <span className="flex items-center gap-1 text-[10px] font-mono text-emerald-600 dark:text-[#22C997]">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                          {isSynced ? 'Live Synced' : 'Offline'}
+                        </span>
+                      </div>
+
+                      {/* Divider */}
+                      <div className="border-t border-stone-200/80 dark:border-[#202A3A] my-1" />
+
+                      {/* Logout Action */}
+                      {onLogout && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsProfileMenuOpen(false);
+                            onLogout();
+                          }}
+                          className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-left text-rose-600 dark:text-[#F15B6C] hover:bg-rose-50 dark:hover:bg-[rgba(241,91,108,0.12)] transition-all cursor-pointer font-semibold text-xs"
+                        >
+                          <LogOut className="w-4 h-4 text-rose-500 dark:text-[#F15B6C]" />
+                          <span>Sign Out of Portal</span>
+                        </button>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            )}
           </div>
         </div>
       </div>

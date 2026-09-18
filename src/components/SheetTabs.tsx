@@ -8,6 +8,7 @@ import {
   X,
   Layers,
   Trash2,
+  MoreVertical,
 } from 'lucide-react';
 import { Sheet } from '../types';
 import { formatRupees } from '../utils/formatters';
@@ -43,22 +44,27 @@ export const SheetTabs: React.FC<SheetTabsProps> = ({
   const [dropdownSearch, setDropdownSearch] = useState('');
   const [editingBudgetId, setEditingBudgetId] = useState<string | null>(null);
   const [budgetInput, setBudgetInput] = useState<string>('');
+  const [openMenuSheetId, setOpenMenuSheetId] = useState<string | null>(null);
 
   const tabsContainerRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const activeSheet = sheets.find((s) => s.id === activeSheetId) || sheets[0];
+  const activeSheet = sheets.find((s) => s.id === activeSheetId) || sheets[0] || null;
 
   // Close dropdown on outside click
   useEffect(() => {
     const handleOutside = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      if (dropdownRef.current && !dropdownRef.current.contains(target)) {
         setIsDropdownOpen(false);
+      }
+      if (openMenuSheetId) {
+        setOpenMenuSheetId(null);
       }
     };
     document.addEventListener('mousedown', handleOutside);
     return () => document.removeEventListener('mousedown', handleOutside);
-  }, []);
+  }, [openMenuSheetId]);
 
   const handleStartCreate = () => {
     setIsCreating(true);
@@ -106,47 +112,51 @@ export const SheetTabs: React.FC<SheetTabsProps> = ({
   );
 
   return (
-    <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-stone-200/80 dark:border-neutral-800 p-2.5 sm:p-3 shadow-xs">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2.5 mb-2 border-b border-stone-100 dark:border-neutral-800/80">
+    <div className="bg-white dark:bg-[#111722] rounded-2xl border border-stone-200/80 dark:border-[#202A3A] p-2.5 sm:p-3 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2.5 mb-2 border-b border-stone-100 dark:border-[#202A3A]">
         <div className="flex items-center gap-2 flex-wrap">
-          <div className="w-6 h-6 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+          <div className="w-6 h-6 rounded-lg bg-blue-50 dark:bg-[#1A2A4A] text-blue-600 dark:text-[#4F7CFF] flex items-center justify-center">
             <Layers className="w-3.5 h-3.5" />
           </div>
-          <span className="text-xs font-bold font-display uppercase tracking-wider text-slate-700 dark:text-slate-300">
+          <span className="text-xs font-bold font-display uppercase tracking-wider text-slate-700 dark:text-[#F1F5F9]">
             Department Expense Sheets
           </span>
-          <span className="text-[11px] px-2 py-0.5 rounded-full bg-stone-100 dark:bg-neutral-800 text-slate-500 font-medium font-mono">
+          <span className="text-[11px] px-2 py-0.5 rounded-full bg-stone-100 dark:bg-white/[0.05] text-slate-500 dark:text-[#A7B2C4] font-medium font-mono">
             {sheets.length} Shared {sheets.length === 1 ? 'Sheet' : 'Sheets'}
           </span>
         </div>
 
         {/* Modern Sheet Switcher Dropdown */}
-        <div className="relative" ref={dropdownRef}>
+        <div className="relative w-full sm:w-auto" ref={dropdownRef}>
           <button
             type="button"
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-stone-100/80 dark:bg-neutral-800/80 border border-stone-200/90 dark:border-neutral-700 text-slate-800 dark:text-slate-200 text-xs font-semibold hover:bg-stone-200/70 dark:hover:bg-neutral-700 transition-all cursor-pointer min-h-[36px]"
+            className="flex items-center justify-between w-full sm:w-auto gap-2 px-3 py-1.5 rounded-xl bg-stone-100/80 dark:bg-[#151D2A] border border-stone-200/90 dark:border-[#202A3A] text-slate-800 dark:text-[#F1F5F9] text-xs font-semibold hover:bg-stone-200/70 dark:hover:bg-[#1A2333] dark:hover:border-[#344158] transition-all cursor-pointer min-h-[36px]"
           >
-            <FileSpreadsheet className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-            <span className="truncate max-w-[130px] sm:max-w-[180px]">
-              Active: {activeSheet.name}
-            </span>
-            <span className="text-[10px] font-mono text-slate-500">
-              ({activeSheet.products.length})
-            </span>
-            <span className="text-slate-400 ml-0.5">&ndash;&rsaquo;</span>
+            <div className="flex items-center gap-2 min-w-0">
+              <FileSpreadsheet className="w-3.5 h-3.5 text-blue-600 dark:text-[#4F7CFF] shrink-0" />
+              <span className="truncate max-w-[200px] sm:max-w-[180px]">
+                Active: {activeSheet ? activeSheet.name : 'None'}
+              </span>
+            </div>
+            <div className="flex items-center gap-1 shrink-0">
+              <span className="text-[10px] font-mono text-slate-500 dark:text-[#718096]">
+                ({activeSheet ? activeSheet.products.length : 0})
+              </span>
+              <span className="text-slate-400 dark:text-[#718096] ml-0.5">&ndash;&rsaquo;</span>
+            </div>
           </button>
 
           {/* Dropdown Menu */}
           {isDropdownOpen && (
-            <div className="absolute right-0 top-full mt-1.5 w-72 sm:w-80 bg-white/95 dark:bg-neutral-950/95 backdrop-blur-xl border border-stone-200 dark:border-neutral-800 rounded-2xl shadow-xl z-50 p-2.5 space-y-2">
-              <div className="flex items-center gap-2 px-2.5 py-1.5 bg-stone-50 dark:bg-neutral-900 rounded-xl border border-stone-200/70 dark:border-neutral-800">
+            <div className="absolute left-0 sm:left-auto sm:right-0 top-full mt-1.5 w-full sm:w-80 bg-white/95 dark:bg-[#151D2A] backdrop-blur-xl border border-stone-200 dark:border-[#202A3A] rounded-2xl shadow-xl z-50 p-2.5 space-y-2">
+              <div className="flex items-center gap-2 px-2.5 py-1.5 bg-stone-50 dark:bg-[#0D131E] rounded-xl border border-stone-200/70 dark:border-[#202A3A]">
                 <input
                   type="text"
                   value={dropdownSearch}
                   onChange={(e) => setDropdownSearch(e.target.value)}
                   placeholder="Search department sheet..."
-                  className="w-full text-xs bg-transparent border-none focus:outline-none text-slate-900 dark:text-white placeholder-slate-400"
+                  className="w-full text-xs bg-transparent border-none focus:outline-none text-slate-900 dark:text-[#F1F5F9] placeholder-slate-400 dark:placeholder-[#718096]"
                   autoFocus
                 />
               </div>
@@ -165,26 +175,26 @@ export const SheetTabs: React.FC<SheetTabsProps> = ({
                       }}
                       className={`flex items-center justify-between p-2.5 rounded-xl cursor-pointer transition-all ${
                         isSelected
-                          ? 'bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-900 text-blue-900 dark:text-blue-200 font-semibold'
-                          : 'hover:bg-stone-50 dark:hover:bg-neutral-900 text-slate-700 dark:text-slate-300'
+                          ? 'bg-blue-50 dark:bg-[rgba(79,124,255,0.15)] border border-blue-200 dark:border-[rgba(79,124,255,0.45)] text-blue-900 dark:text-[#F1F5FF] font-semibold'
+                          : 'hover:bg-stone-50 dark:hover:bg-[#111722] text-slate-700 dark:text-[#A7B2C4]'
                       }`}
                     >
                       <div className="min-w-0 flex items-center gap-2">
                         <FileSpreadsheet
                           className={`w-3.5 h-3.5 shrink-0 ${
-                            isSelected ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400'
+                            isSelected ? 'text-blue-600 dark:text-[#4F7CFF]' : 'text-slate-400 dark:text-[#718096]'
                           }`}
                         />
                         <div className="min-w-0">
                           <p className="text-xs truncate font-medium">{sheet.name}</p>
-                          <p className="text-[10px] text-slate-500 font-mono">
+                          <p className="text-[10px] text-slate-500 dark:text-[#718096] font-mono">
                             {sheet.products.length} products &bull; {formatRupees(total)}
                           </p>
                         </div>
                       </div>
 
                       {isSelected && (
-                        <Check className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
+                        <Check className="w-4 h-4 text-blue-600 dark:text-[#4F7CFF] shrink-0" />
                       )}
                     </div>
                   );
@@ -206,7 +216,7 @@ export const SheetTabs: React.FC<SheetTabsProps> = ({
             return (
               <div
                 key={sheet.id}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border-2 border-blue-500 bg-white dark:bg-neutral-950 shrink-0 shadow-xs min-h-[40px]"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border-2 border-blue-500 dark:border-[#4F7CFF] bg-white dark:bg-[#111722] shrink-0 shadow-xs min-h-[40px]"
               >
                 <input
                   type="text"
@@ -217,7 +227,7 @@ export const SheetTabs: React.FC<SheetTabsProps> = ({
                     if (e.key === 'Escape') setEditingSheetId(null);
                   }}
                   autoFocus
-                  className="text-xs font-semibold text-slate-900 dark:text-white bg-transparent border-none focus:outline-none w-32 sm:w-36"
+                  className="text-xs font-semibold text-slate-900 dark:text-[#F1F5F9] bg-transparent border-none focus:outline-none w-32 sm:w-36"
                 />
                 <button
                   type="button"
@@ -230,7 +240,7 @@ export const SheetTabs: React.FC<SheetTabsProps> = ({
                 <button
                   type="button"
                   onClick={() => setEditingSheetId(null)}
-                  className="p-1.5 rounded-md text-slate-400 hover:bg-slate-100 dark:hover:bg-neutral-800 cursor-pointer min-h-[32px] min-w-[32px] flex items-center justify-center"
+                  className="p-1.5 rounded-md text-slate-400 hover:bg-slate-100 dark:hover:bg-[#151D2A] cursor-pointer min-h-[32px] min-w-[32px] flex items-center justify-center"
                   title="Cancel"
                 >
                   <X className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
@@ -244,14 +254,14 @@ export const SheetTabs: React.FC<SheetTabsProps> = ({
               key={sheet.id}
               className={`group relative flex items-center gap-2 px-3 py-2 sm:py-2 rounded-xl transition-all cursor-pointer select-none shrink-0 border min-h-[40px] ${
                 isActive
-                  ? 'bg-blue-600 text-white border-blue-600 shadow-xs font-semibold'
-                  : 'bg-stone-50 dark:bg-neutral-800/70 text-slate-700 dark:text-slate-300 border-stone-200/80 dark:border-neutral-800 hover:bg-stone-100 dark:hover:bg-neutral-800'
+                  ? 'bg-blue-600 text-white border-blue-600 shadow-xs font-semibold dark:bg-[rgba(79,124,255,0.15)] dark:border-[rgba(79,124,255,0.45)] dark:text-[#F1F5FF] dark:shadow-none'
+                  : 'bg-stone-50 dark:bg-[#151D2A] text-slate-700 dark:text-[#A7B2C4] border-stone-200/80 dark:border-[#202A3A] hover:bg-stone-100 dark:hover:bg-[#192333] dark:hover:border-[#344158]'
               }`}
               onClick={() => onSelectSheet(sheet.id)}
             >
               <FileSpreadsheet
                 className={`w-3.5 h-3.5 shrink-0 ${
-                  isActive ? 'text-white' : 'text-slate-400 dark:text-slate-500'
+                  isActive ? 'text-white dark:text-[#4F7CFF]' : 'text-slate-400 dark:text-[#718096]'
                 }`}
               />
               <span className="text-xs font-medium tracking-tight whitespace-nowrap">
@@ -262,8 +272,8 @@ export const SheetTabs: React.FC<SheetTabsProps> = ({
               <span
                 className={`text-[10px] px-1.5 py-0.2 rounded-md font-mono shrink-0 ${
                   isActive
-                    ? 'bg-blue-700 text-blue-100'
-                    : 'bg-stone-200/70 dark:bg-neutral-700 text-slate-600 dark:text-slate-300'
+                    ? 'bg-blue-700 text-blue-100 dark:bg-[#1A2A4A] dark:text-[#638DFF]'
+                    : 'bg-stone-200/70 dark:bg-[#0D131E] text-slate-600 dark:text-[#A7B2C4]'
                 }`}
               >
                 {sheet.products.length}
@@ -271,48 +281,79 @@ export const SheetTabs: React.FC<SheetTabsProps> = ({
 
               <span
                 className={`text-[10px] font-mono hidden md:inline-block shrink-0 ${
-                  isActive ? 'text-blue-100 font-normal' : 'text-slate-400'
+                  isActive ? 'text-blue-100 dark:text-[#A7B2C4] font-normal' : 'text-slate-400 dark:text-[#718096]'
                 }`}
               >
                 ({formatRupees(sheetTotal)})
               </span>
 
-              {/* Quick Tab Actions (Rename, Duplicate, Delete) */}
+              {/* Sheet Tab Action Menu (Rename, Duplicate, Delete) */}
               <div
-                className="flex items-center gap-0.5 ml-1 opacity-80 sm:opacity-60 group-hover:opacity-100 transition-opacity"
+                className="relative flex items-center ml-1"
                 onClick={(e) => e.stopPropagation()}
               >
                 <button
                   type="button"
-                  onClick={() => handleStartRename(sheet)}
-                  title="Rename Sheet"
-                  className={`p-1 rounded hover:bg-black/10 dark:hover:bg-white/10 active:scale-90 ${
-                    isActive ? 'text-white' : 'text-slate-400 hover:text-slate-600'
+                  onClick={() =>
+                    setOpenMenuSheetId(openMenuSheetId === sheet.id ? null : sheet.id)
+                  }
+                  title="Sheet Options Menu"
+                  className={`p-1 rounded-md transition-all cursor-pointer ${
+                    openMenuSheetId === sheet.id
+                      ? 'bg-black/20 dark:bg-white/15 text-white'
+                      : isActive
+                      ? 'text-white/80 hover:text-white dark:text-[#A7B2C4] dark:hover:text-[#F1F5F9] hover:bg-black/10 dark:hover:bg-white/10'
+                      : 'text-slate-400 dark:text-[#718096] hover:text-slate-700 dark:hover:text-[#F1F5F9] hover:bg-stone-200/60 dark:hover:bg-[#202A3A]'
                   }`}
+                  aria-haspopup="true"
+                  aria-expanded={openMenuSheetId === sheet.id}
                 >
-                  <Edit2 className="w-3.5 h-3.5 sm:w-3 sm:h-3" />
+                  <MoreVertical className="w-3.5 h-3.5" />
                 </button>
-                <button
-                  type="button"
-                  onClick={() => onDuplicateSheet(sheet.id)}
-                  title="Duplicate Sheet"
-                  className={`p-1 rounded hover:bg-black/10 dark:hover:bg-white/10 active:scale-90 ${
-                    isActive ? 'text-white' : 'text-slate-400 hover:text-slate-600'
-                  }`}
-                >
-                  <Copy className="w-3.5 h-3.5 sm:w-3 sm:h-3" />
-                </button>
-                {onDeleteSheet && sheets.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => setDeletingSheet(sheet)}
-                    title="Delete Sheet"
-                    className={`p-1 rounded hover:bg-black/10 dark:hover:bg-white/10 active:scale-90 ${
-                      isActive ? 'text-rose-200 hover:text-white' : 'text-slate-400 hover:text-rose-600'
-                    }`}
-                  >
-                    <Trash2 className="w-3.5 h-3.5 sm:w-3 sm:h-3" />
-                  </button>
+
+                {/* Popover Sheet Actions Menu */}
+                {openMenuSheetId === sheet.id && (
+                  <div className="absolute right-0 top-full mt-1 w-36 rounded-xl bg-white dark:bg-[#111722] border border-stone-200 dark:border-[#202A3A] shadow-xl dark:shadow-[0_12px_30px_rgba(0,0,0,0.30)] p-1 space-y-0.5 z-40 animate-fade-in text-left">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleStartRename(sheet);
+                        setOpenMenuSheetId(null);
+                      }}
+                      className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-[#F1F5F9] hover:bg-stone-100 dark:hover:bg-[#151D2A] transition-colors cursor-pointer"
+                    >
+                      <Edit2 className="w-3.5 h-3.5 text-blue-600 dark:text-[#4F7CFF]" />
+                      <span>Rename</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onDuplicateSheet(sheet.id);
+                        setOpenMenuSheetId(null);
+                      }}
+                      className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-[#F1F5F9] hover:bg-stone-100 dark:hover:bg-[#151D2A] transition-colors cursor-pointer"
+                    >
+                      <Copy className="w-3.5 h-3.5 text-indigo-600 dark:text-[#638DFF]" />
+                      <span>Duplicate</span>
+                    </button>
+
+                    {onDeleteSheet && sheets.length > 1 && (
+                      <div className="pt-0.5 border-t border-stone-100 dark:border-[#202A3A]">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setDeletingSheet(sheet);
+                            setOpenMenuSheetId(null);
+                          }}
+                          className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium text-rose-600 dark:text-[#F15B6C] hover:bg-rose-50 dark:hover:bg-[rgba(241,91,108,0.12)] transition-colors cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>Delete</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
             </div>
@@ -323,7 +364,7 @@ export const SheetTabs: React.FC<SheetTabsProps> = ({
         {isCreating ? (
           <form
             onSubmit={handleConfirmCreate}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border-2 border-dashed border-blue-500 bg-blue-50/50 dark:bg-blue-950/30 shrink-0 min-h-[40px]"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border-2 border-dashed border-[#4F7CFF] bg-blue-50/50 dark:bg-[#1A2A4A]/50 shrink-0 min-h-[40px]"
           >
             <input
               type="text"
@@ -331,11 +372,11 @@ export const SheetTabs: React.FC<SheetTabsProps> = ({
               onChange={(e) => setNewSheetName(e.target.value)}
               placeholder="Sheet Name..."
               autoFocus
-              className="text-xs font-medium text-slate-900 dark:text-white bg-transparent border-none focus:outline-none w-36 sm:w-44 placeholder-slate-400"
+              className="text-xs font-medium text-slate-900 dark:text-[#F1F5F9] bg-transparent border-none focus:outline-none w-36 sm:w-44 placeholder-slate-400 dark:placeholder-[#718096]"
             />
             <button
               type="submit"
-              className="p-1 rounded-md bg-blue-600 text-white hover:bg-blue-700 cursor-pointer"
+              className="p-1 rounded-md bg-[#4F7CFF] text-white hover:bg-[#638DFF] cursor-pointer"
               title="Add Sheet"
             >
               <Check className="w-3.5 h-3.5" />
@@ -343,7 +384,7 @@ export const SheetTabs: React.FC<SheetTabsProps> = ({
             <button
               type="button"
               onClick={() => setIsCreating(false)}
-              className="p-1 rounded-md text-slate-400 hover:bg-slate-200 dark:hover:bg-neutral-800 cursor-pointer"
+              className="p-1 rounded-md text-slate-400 dark:text-[#718096] hover:bg-slate-200 dark:hover:bg-[#151D2A] cursor-pointer"
               title="Cancel"
             >
               <X className="w-3.5 h-3.5" />
@@ -353,7 +394,7 @@ export const SheetTabs: React.FC<SheetTabsProps> = ({
           <button
             type="button"
             onClick={handleStartCreate}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-dashed border-stone-300 dark:border-neutral-700 hover:border-blue-500 hover:text-blue-600 text-slate-600 dark:text-slate-400 dark:hover:text-blue-400 bg-transparent hover:bg-blue-50/50 dark:hover:bg-blue-950/20 transition-all text-xs font-semibold shrink-0 cursor-pointer min-h-[40px]"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-dashed border-stone-300 dark:border-[#202A3A] hover:border-blue-500 dark:hover:border-[#344158] text-slate-600 dark:text-[#A7B2C4] hover:text-blue-600 dark:hover:text-[#F1F5F9] bg-transparent dark:bg-[#151D2A] hover:bg-blue-50/50 dark:hover:bg-[#192333] transition-all text-xs font-semibold shrink-0 cursor-pointer min-h-[40px]"
             title="Create New Sheet"
           >
             <Plus className="w-3.5 h-3.5" />

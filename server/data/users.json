@@ -1,0 +1,22 @@
+[
+  {
+    "id": "user-admin-1",
+    "username": "admin",
+    "password": "admin123",
+    "fullName": "System Administrator",
+    "role": "admin",
+    "department": "Hospital Management",
+    "createdAt": "2026-09-18T08:14:45.578Z",
+    "updatedAt": "2026-09-18T08:14:47.165Z"
+  },
+  {
+    "id": "user-staff-1",
+    "username": "nurse",
+    "password": "nurse123",
+    "fullName": "OT Nurse Staff",
+    "role": "staff",
+    "department": "Main OT",
+    "createdAt": "2026-09-18T08:14:45.578Z",
+    "updatedAt": "2026-09-18T08:14:47.167Z"
+  }
+]

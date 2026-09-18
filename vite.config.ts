@@ -4,91 +4,45 @@ import path from 'path';
 import fs from 'fs';
 import { defineConfig, Plugin } from 'vite';
 
-// Vite Middleware plugin to provide cross-user persistent shared API for sheets
+import {
+  connectDB,
+  getDbStatus,
+  getSheets,
+  saveSheets,
+  getUsers,
+  authenticateUser,
+  createUser,
+  updateUser,
+  deleteUser,
+} from './server/db.js';
+
+// Vite Middleware plugin to provide cross-user persistent shared API for sheets & users
 function sheetsApiPlugin(): Plugin {
-  const dataDir = path.resolve(__dirname, 'server/data');
-  const filePath = path.join(dataDir, 'sheets.json');
-
-  const ensureDataFile = () => {
-    if (!fs.existsSync(dataDir)) {
-      fs.mkdirSync(dataDir, { recursive: true });
-    }
-    if (!fs.existsSync(filePath)) {
-      // Default initial sheets
-      const initialSheets = [
-        {
-          id: 'sheet-1',
-          name: 'Main OT & Consumables',
-          products: [
-            {
-              id: 'prod-1',
-              productName: 'AcrySof IQ Toric IOL Pack',
-              price: 18500,
-              additionalInfo: 'Alcon - OT Suite 2 - Lot #8841A',
-              timestamp: new Date().toISOString(),
-              date: '17 Sep 2026',
-              time: '08:30 AM',
-              category: 'Medical Supplies',
-            },
-            {
-              id: 'prod-2',
-              productName: 'Moxifloxacin Eye Drops 10ml (Box of 10)',
-              price: 2400,
-              additionalInfo: 'Supplier: Micro Labs - Exp 2027',
-              timestamp: new Date().toISOString(),
-              date: '17 Sep 2026',
-              time: '09:15 AM',
-              category: 'Pharmacy',
-            },
-            {
-              id: 'prod-3',
-              productName: 'Viscoelastic Healon GV Syringe 1ml',
-              price: 4200,
-              additionalInfo: 'Johnson & Johnson - Phaco OT',
-              timestamp: new Date().toISOString(),
-              date: '17 Sep 2026',
-              time: '10:00 AM',
-              category: 'Medical Supplies',
-            }
-          ],
-          createdAt: new Date().toISOString(),
-          budgetLimit: 50000,
-        },
-        {
-          id: 'sheet-2',
-          name: 'Pharmacy & Drops',
-          products: [],
-          createdAt: new Date().toISOString(),
-          budgetLimit: 30000,
-        },
-        {
-          id: 'sheet-3',
-          name: 'OPD & Diagnostics',
-          products: [],
-          createdAt: new Date().toISOString(),
-          budgetLimit: 25000,
-        },
-      ];
-      fs.writeFileSync(filePath, JSON.stringify(initialSheets, null, 2), 'utf-8');
-    }
-  };
-
   return {
     name: 'sheets-api-plugin',
     configureServer(server) {
-      ensureDataFile();
+      server.middlewares.use(async (req, res, next) => {
+        const url = req.url || '';
 
-      server.middlewares.use((req, res, next) => {
-        if (req.url === '/api/sheets' || req.url?.startsWith('/api/sheets')) {
+        // DB Status API
+        if (url === '/api/db-status' || url.startsWith('/api/db-status')) {
+          res.setHeader('Content-Type', 'application/json');
+          await connectDB();
+          res.statusCode = 200;
+          res.end(JSON.stringify(getDbStatus()));
+          return;
+        }
+
+        // 1. Sheets API
+        if (url === '/api/sheets' || url.startsWith('/api/sheets')) {
           res.setHeader('Content-Type', 'application/json');
 
           if (req.method === 'GET') {
             try {
-              ensureDataFile();
-              const raw = fs.readFileSync(filePath, 'utf-8');
+              const sheets = await getSheets();
               res.statusCode = 200;
-              res.end(raw);
-            } catch {
+              res.end(JSON.stringify(sheets));
+            } catch (e) {
               res.statusCode = 500;
               res.end(JSON.stringify({ error: 'Failed to read sheets' }));
             }
@@ -100,21 +54,119 @@ function sheetsApiPlugin(): Plugin {
             req.on('data', (chunk) => {
               body += chunk.toString();
             });
-            req.on('end', () => {
+            req.on('end', async () => {
               try {
                 const parsed = JSON.parse(body);
-                ensureDataFile();
-                fs.writeFileSync(filePath, JSON.stringify(parsed, null, 2), 'utf-8');
+                await saveSheets(parsed);
                 res.statusCode = 200;
                 res.end(JSON.stringify({ success: true, count: parsed.length }));
-              } catch {
+              } catch (e) {
                 res.statusCode = 400;
-                res.end(JSON.stringify({ error: 'Invalid JSON payload' }));
+                res.end(JSON.stringify({ error: 'Invalid JSON payload or save failed' }));
               }
             });
             return;
           }
         }
+
+        // 2. Auth Login API
+        if (url === '/api/auth/login' && req.method === 'POST') {
+          res.setHeader('Content-Type', 'application/json');
+          let body = '';
+          req.on('data', (chunk) => {
+            body += chunk.toString();
+          });
+          req.on('end', async () => {
+            try {
+              const { username, password } = JSON.parse(body);
+              const user = await authenticateUser(username, password);
+              if (user) {
+                res.statusCode = 200;
+                res.end(JSON.stringify({ success: true, user }));
+              } else {
+                res.statusCode = 401;
+                res.end(JSON.stringify({ error: 'Invalid username or password' }));
+              }
+            } catch (e) {
+              res.statusCode = 500;
+              res.end(JSON.stringify({ error: 'Server authentication error' }));
+            }
+          });
+          return;
+        }
+
+        // 3. User Management API
+        if (url === '/api/users' || url.startsWith('/api/users')) {
+          res.setHeader('Content-Type', 'application/json');
+
+          if (req.method === 'GET') {
+            try {
+              const users = await getUsers();
+              const sanitized = users.map(({ password, ...u }) => u);
+              res.statusCode = 200;
+              res.end(JSON.stringify(sanitized));
+            } catch (e) {
+              res.statusCode = 500;
+              res.end(JSON.stringify({ error: 'Failed to fetch users' }));
+            }
+            return;
+          }
+
+          if (req.method === 'POST') {
+            let body = '';
+            req.on('data', (chunk) => {
+              body += chunk.toString();
+            });
+            req.on('end', async () => {
+              try {
+                const parsed = JSON.parse(body);
+                const newUser = await createUser(parsed);
+                res.statusCode = 200;
+                res.end(JSON.stringify({ success: true, user: newUser }));
+              } catch (e) {
+                res.statusCode = 400;
+                res.end(JSON.stringify({ error: e.message || 'Failed to create user' }));
+              }
+            });
+            return;
+          }
+
+          if (req.method === 'PUT') {
+            const parts = url.split('/');
+            const id = parts[parts.length - 1];
+            let body = '';
+            req.on('data', (chunk) => {
+              body += chunk.toString();
+            });
+            req.on('end', async () => {
+              try {
+                const updates = JSON.parse(body);
+                const updated = await updateUser(id, updates);
+                res.statusCode = 200;
+                res.end(JSON.stringify({ success: true, count: updated.length }));
+              } catch (e) {
+                res.statusCode = 500;
+                res.end(JSON.stringify({ error: 'Failed to update user' }));
+              }
+            });
+            return;
+          }
+
+          if (req.method === 'DELETE') {
+            const parts = url.split('/');
+            const id = parts[parts.length - 1];
+            try {
+              const updated = await deleteUser(id);
+              res.statusCode = 200;
+              res.end(JSON.stringify({ success: true, count: updated.length }));
+            } catch (e) {
+              res.statusCode = 500;
+              res.end(JSON.stringify({ error: 'Failed to delete user' }));
+            }
+            return;
+          }
+        }
+
         next();
       });
     },
@@ -131,7 +183,9 @@ export default defineConfig(() => {
     },
     server: {
       hmr: process.env.DISABLE_HMR !== 'true',
-      watch: process.env.DISABLE_HMR === 'true' ? null : {},
+      watch: {
+        ignored: ['**/server/data/**', '**/server/data/*.json'],
+      },
     },
   };
 });

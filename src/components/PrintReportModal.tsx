@@ -30,28 +30,28 @@ export const PrintReportModal: React.FC<PrintReportModalProps> = ({
       title="Hospital Audit Expense Report"
       subtitle={`Official printable expense breakdown for ${sheet.name}`}
       icon={
-        <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white shadow-xs">
+        <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-[#1A2A4A] border border-transparent dark:border-[rgba(79,124,255,0.25)] text-[#4F7CFF] flex items-center justify-center shrink-0">
           <Printer className="w-4 h-4" />
         </div>
       }
       maxWidth="3xl"
       footer={
         <div className="flex items-center justify-between w-full">
-          <span className="text-[11px] text-slate-500">
+          <span className="text-[11px] text-slate-500 dark:text-[#718096]">
             Formatted for A4 / Letter Print Out
           </span>
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-lg transition-colors cursor-pointer"
+              className="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-[#A7B2C4] hover:text-slate-900 dark:hover:text-[#F1F5F9] rounded-lg transition-colors cursor-pointer"
             >
               Close
             </button>
             <button
               type="button"
               onClick={handleTriggerPrint}
-              className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white text-xs font-semibold transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
+              className="px-5 py-2 rounded-[9px] bg-[#4F7CFF] hover:bg-[#638DFF] active:scale-[0.98] text-white text-xs font-semibold transition-all shadow-[0_2px_8px_rgba(79,124,255,0.25)] cursor-pointer flex items-center gap-1.5"
             >
               <Printer className="w-4 h-4" />
               <span>Print Official Report</span>

@@ -113,30 +113,30 @@ export const ProductLogTable: React.FC<ProductLogTableProps> = ({
   return (
     <div className="space-y-4">
       {/* 1. Fast Inline Quick Add Bar */}
-      <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-neutral-950 border border-stone-200/90 dark:border-neutral-800 shadow-xs">
+      <div className="p-4 sm:p-5 rounded-[16px] bg-white dark:bg-[#111722] border border-stone-200/90 dark:border-[#202A3A] shadow-xs dark:shadow-[0_8px_30px_rgba(0,0,0,0.18)]">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-blue-50 dark:bg-[#1A2A4A] text-blue-600 dark:text-[#4F7CFF] border border-transparent dark:border-[rgba(79,124,255,0.25)] flex items-center justify-center shrink-0">
               <Plus className="w-4 h-4" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-sm font-bold font-display text-slate-900 dark:text-white">
+                <h3 className="text-sm font-bold font-display text-slate-900 dark:text-[#F1F5F9]">
                   Quick Entry
                 </h3>
                 {activeSheetName && (
-                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-900/60">
+                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-blue-100 dark:bg-[rgba(79,124,255,0.12)] text-blue-700 dark:text-[#638DFF] border border-blue-200 dark:border-[rgba(79,124,255,0.25)]">
                     {activeSheetName}
                   </span>
                 )}
               </div>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+              <p className="text-[11px] text-slate-500 dark:text-[#718096]">
                 Type product name, price &amp; additional info &mdash; logged directly to this sheet
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/60 dark:border-emerald-800/40 text-[11px] font-mono text-emerald-800 dark:text-emerald-300 self-start sm:self-auto">
-            <Clock className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-[rgba(34,201,151,0.08)] border border-emerald-200/60 dark:border-[rgba(34,201,151,0.25)] text-[11px] font-mono text-emerald-800 dark:text-[#22C997] self-start sm:self-auto">
+            <Clock className="w-3.5 h-3.5 text-emerald-600 dark:text-[#22C997] shrink-0" />
             <span>Auto: {currentAutoTime}</span>
           </div>
         </div>
@@ -153,13 +153,13 @@ export const ProductLogTable: React.FC<ProductLogTableProps> = ({
               onChange={(e) => setQuickName(e.target.value)}
               placeholder="Product Name (e.g. Toric Lens Pack, Eye Drops)..."
               required
-              className="w-full px-3.5 py-2 rounded-xl border border-stone-300 dark:border-neutral-800 bg-stone-50/50 dark:bg-neutral-900/80 text-slate-900 dark:text-white placeholder-slate-400 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
+              className="w-full px-3.5 py-2 rounded-[9px] border border-stone-300 dark:border-[#202A3A] dark:hover:border-[#344158] bg-stone-50/50 dark:bg-[#0D131E] text-slate-900 dark:text-[#F1F5F9] placeholder-slate-400 dark:placeholder-[#718096] text-xs sm:text-sm focus:border-blue-500 dark:focus:border-[#4F7CFF] dark:focus:shadow-[0_0_0_3px_rgba(79,124,255,0.10)] focus:outline-none transition-all"
             />
           </div>
 
           {/* Price (Rupees ₹) Input */}
           <div className="sm:col-span-2 relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 dark:text-slate-400 font-bold font-mono text-xs">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 dark:text-[#718096] font-bold font-mono text-xs">
               ₹
             </div>
             <input
@@ -172,7 +172,7 @@ export const ProductLogTable: React.FC<ProductLogTableProps> = ({
               }
               placeholder="Price in ₹"
               required
-              className="w-full pl-7 pr-3 py-2 rounded-xl border border-stone-300 dark:border-neutral-800 bg-stone-50/50 dark:bg-neutral-900/80 text-slate-900 dark:text-white placeholder-slate-400 text-xs sm:text-sm font-mono font-bold focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
+              className="w-full pl-7 pr-3 py-2 rounded-[9px] border border-stone-300 dark:border-[#202A3A] dark:hover:border-[#344158] bg-stone-50/50 dark:bg-[#0D131E] text-slate-900 dark:text-[#F1F5F9] placeholder-slate-400 dark:placeholder-[#718096] text-xs sm:text-sm font-mono font-bold focus:border-blue-500 dark:focus:border-[#4F7CFF] dark:focus:shadow-[0_0_0_3px_rgba(79,124,255,0.10)] focus:outline-none transition-all"
             />
           </div>
 
@@ -183,7 +183,7 @@ export const ProductLogTable: React.FC<ProductLogTableProps> = ({
               value={quickAdditionalInfo}
               onChange={(e) => setQuickAdditionalInfo(e.target.value)}
               placeholder="Additional Info (Batch, Supplier, Notes)..."
-              className="w-full px-3.5 py-2 rounded-xl border border-stone-300 dark:border-neutral-800 bg-stone-50/50 dark:bg-neutral-900/80 text-slate-900 dark:text-white placeholder-slate-400 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
+              className="w-full px-3.5 py-2 rounded-[9px] border border-stone-300 dark:border-[#202A3A] dark:hover:border-[#344158] bg-stone-50/50 dark:bg-[#0D131E] text-slate-900 dark:text-[#F1F5F9] placeholder-slate-400 dark:placeholder-[#718096] text-xs sm:text-sm focus:border-blue-500 dark:focus:border-[#4F7CFF] dark:focus:shadow-[0_0_0_3px_rgba(79,124,255,0.10)] focus:outline-none transition-all"
             />
           </div>
 
@@ -201,7 +201,7 @@ export const ProductLogTable: React.FC<ProductLogTableProps> = ({
             <button
               type="submit"
               disabled={!quickName.trim() || quickPrice === ''}
-              className="w-full py-2 px-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white text-xs font-semibold flex items-center justify-center gap-1 transition-all shadow-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed min-h-[38px] sm:min-h-0"
+              className="w-full py-2 px-2.5 rounded-[9px] bg-[#4F7CFF] hover:bg-[#638DFF] active:scale-[0.98] text-white text-xs font-semibold flex items-center justify-center gap-1 transition-all shadow-[0_2px_8px_rgba(79,124,255,0.25)] cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed min-h-[38px] sm:min-h-0"
             >
               <Check className="w-3.5 h-3.5" />
               <span>Submit</span>
@@ -211,16 +211,16 @@ export const ProductLogTable: React.FC<ProductLogTableProps> = ({
       </div>
 
       {/* 2. Search, Category Filters, and Sort Controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 bg-white dark:bg-neutral-950 p-3 sm:p-3.5 rounded-2xl border border-stone-200/90 dark:border-neutral-800 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 bg-white dark:bg-[#111722] p-3 sm:p-3.5 rounded-[16px] border border-stone-200/90 dark:border-[#202A3A] shadow-xs dark:shadow-[0_8px_30px_rgba(0,0,0,0.18)]">
         {/* Search input */}
         <div className="relative flex-1">
-          <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
+          <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400 dark:text-[#718096]" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search products by name, info, or date..."
-            className="w-full pl-9 pr-3 py-2 sm:py-1.5 rounded-xl border border-stone-200 dark:border-neutral-800 bg-stone-50/70 dark:bg-neutral-900/70 text-slate-900 dark:text-white placeholder-slate-400 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
+            className="w-full pl-9 pr-3 py-2 sm:py-1.5 rounded-[9px] border border-stone-200 dark:border-[#202A3A] dark:hover:border-[#344158] bg-stone-50/70 dark:bg-[#0D131E] text-slate-900 dark:text-[#F1F5F9] placeholder-slate-400 dark:placeholder-[#718096] text-xs focus:border-blue-500 dark:focus:border-[#4F7CFF] dark:focus:shadow-[0_0_0_3px_rgba(79,124,255,0.10)] focus:outline-none transition-all"
           />
         </div>
 
@@ -257,9 +257,9 @@ export const ProductLogTable: React.FC<ProductLogTableProps> = ({
       </div>
 
       {/* 3. Product Log Items List */}
-      <div className="rounded-2xl bg-white dark:bg-neutral-950 border border-stone-200/90 dark:border-neutral-800 overflow-hidden shadow-xs">
+      <div className="rounded-[16px] bg-white dark:bg-[#111722] border border-stone-200/90 dark:border-[#202A3A] overflow-hidden shadow-xs dark:shadow-[0_8px_30px_rgba(0,0,0,0.18)]">
         {/* Table Header (Desktop only) */}
-        <div className="hidden sm:grid grid-cols-12 px-5 py-3 border-b border-stone-200/80 dark:border-neutral-800 bg-stone-50/80 dark:bg-neutral-900/60 text-xs font-semibold text-slate-500 dark:text-slate-400 font-sans">
+        <div className="hidden sm:grid grid-cols-12 px-5 py-3 border-b border-stone-200/80 dark:border-[#202A3A] bg-stone-50/80 dark:bg-[#151D2A] text-xs font-semibold text-slate-500 dark:text-[#718096] font-sans">
           <div className="col-span-5">Product Name &amp; Details</div>
           <div className="col-span-3 text-right">Price (Rupees ₹)</div>
           <div className="col-span-3 pl-4">Auto-Matched Date &amp; Time</div>
@@ -269,44 +269,49 @@ export const ProductLogTable: React.FC<ProductLogTableProps> = ({
         {/* Empty state */}
         {filteredProducts.length === 0 ? (
           <div className="py-12 px-4 text-center">
-            <div className="w-12 h-12 rounded-2xl bg-stone-100 dark:bg-neutral-900 text-slate-400 flex items-center justify-center mx-auto mb-3">
+            <div className="w-12 h-12 rounded-2xl bg-stone-100 dark:bg-[#151D2A] border border-transparent dark:border-[#202A3A] text-slate-400 dark:text-[#718096] flex items-center justify-center mx-auto mb-3">
               <IndianRupee className="w-6 h-6" />
             </div>
-            <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200 font-display">
+            <h4 className="text-sm font-bold text-slate-800 dark:text-[#F1F5F9] font-display">
               No products found
             </h4>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">
+            <p className="text-xs text-slate-500 dark:text-[#718096] mt-1 max-w-sm mx-auto">
               {searchQuery || selectedCategory !== 'all'
                 ? 'Try clearing your search or category filter.'
                 : 'Log your first product name and price using the quick bar above.'}
             </p>
           </div>
         ) : (
-          <div className="divide-y divide-stone-100 dark:divide-neutral-900">
+          <div className="divide-y divide-stone-100 dark:divide-[#202A3A]">
             {filteredProducts.map((item) => (
               <div key={item.id}>
                 {/* Desktop View (sm:grid) */}
-                <div className="hidden sm:grid grid-cols-12 px-5 py-3.5 hover:bg-stone-50/60 dark:hover:bg-neutral-900/40 transition-colors items-center">
+                <div className="hidden sm:grid grid-cols-12 px-5 py-3.5 hover:bg-stone-50/60 dark:hover:bg-[#151D2A]/60 transition-colors items-center">
                   {/* 1. Product Name & Category */}
                   <div className="col-span-5 min-w-0">
                     <div className="flex items-center gap-2">
-                      <h4 className="font-bold text-sm text-slate-900 dark:text-white font-display truncate">
+                      <h4 className="font-bold text-sm text-slate-900 dark:text-[#F1F5F9] font-display truncate">
                         {item.productName}
                       </h4>
-                      <span className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-stone-100 dark:bg-neutral-900 text-slate-600 dark:text-slate-300 border border-stone-200/60 dark:border-neutral-800 shrink-0">
+                      <span className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-stone-100 dark:bg-[#151D2A] text-slate-600 dark:text-[#A7B2C4] border border-stone-200/60 dark:border-[#202A3A] shrink-0">
                         {item.category || 'General'}
                       </span>
+                      {item.loggedBy && (
+                        <span className="px-1.5 py-0.2 rounded text-[10px] font-medium bg-blue-50 text-blue-700 dark:bg-[rgba(79,124,255,0.12)] dark:text-[#638DFF] border border-blue-200/60 dark:border-[rgba(79,124,255,0.25)] shrink-0">
+                          👤 {item.loggedBy}
+                        </span>
+                      )}
                     </div>
                     {item.additionalInfo && (
-                      <p className="text-[11px] text-slate-600 dark:text-slate-300 mt-0.5 flex items-center gap-1.5 truncate">
-                        <span className="font-semibold text-slate-400 dark:text-slate-500 text-[10px] uppercase tracking-wider shrink-0">
+                      <p className="text-[11px] text-slate-600 dark:text-[#A7B2C4] mt-0.5 flex items-center gap-1.5 truncate">
+                        <span className="font-semibold text-slate-400 dark:text-[#718096] text-[10px] uppercase tracking-wider shrink-0">
                           Info:
                         </span>
                         <span className="truncate">{item.additionalInfo}</span>
                       </p>
                     )}
                     {item.notes && !item.additionalInfo && (
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 truncate">
+                      <p className="text-[11px] text-slate-500 dark:text-[#718096] mt-0.5 truncate">
                         {item.notes}
                       </p>
                     )}
@@ -314,19 +319,19 @@ export const ProductLogTable: React.FC<ProductLogTableProps> = ({
 
                   {/* 2. Price in Rupees (₹) */}
                   <div className="col-span-3 text-right">
-                    <span className="text-base font-bold font-mono text-emerald-600 dark:text-emerald-400 tabular-nums">
+                    <span className="text-base font-bold font-mono text-emerald-600 dark:text-[#22C997] tabular-nums">
                       {formatRupees(item.price)}
                     </span>
                   </div>
 
                   {/* 3. Logged Date & Time */}
-                  <div className="col-span-3 pl-4 flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300">
-                    <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                  <div className="col-span-3 pl-4 flex items-center gap-1.5 text-xs text-slate-600 dark:text-[#A7B2C4]">
+                    <Clock className="w-3.5 h-3.5 text-slate-400 dark:text-[#718096] shrink-0" />
                     <div className="font-mono">
-                      <span className="font-medium text-slate-800 dark:text-slate-200">
+                      <span className="font-medium text-slate-800 dark:text-[#F1F5F9]">
                         {item.date}
                       </span>
-                      <span className="text-slate-400 dark:text-slate-500 ml-1.5">
+                      <span className="text-slate-400 dark:text-[#718096] ml-1.5">
                         {item.time}
                       </span>
                     </div>
@@ -338,7 +343,7 @@ export const ProductLogTable: React.FC<ProductLogTableProps> = ({
                       <button
                         type="button"
                         onClick={() => onEditProduct(item)}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-stone-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-[#F1F5F9] hover:bg-stone-100 dark:hover:bg-[#151D2A] transition-colors cursor-pointer"
                         aria-label="Edit product"
                       >
                         <Edit3 className="w-3.5 h-3.5" />
@@ -349,7 +354,7 @@ export const ProductLogTable: React.FC<ProductLogTableProps> = ({
                       <button
                         type="button"
                         onClick={() => onDuplicateProduct(item)}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-stone-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-[#F1F5F9] hover:bg-stone-100 dark:hover:bg-[#151D2A] transition-colors cursor-pointer"
                         aria-label="Duplicate entry"
                       >
                         <Copy className="w-3.5 h-3.5" />
@@ -361,10 +366,10 @@ export const ProductLogTable: React.FC<ProductLogTableProps> = ({
                         <button
                           type="button"
                           onClick={() => setDeletingProduct(item)}
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 dark:hover:text-[#F15B6C] hover:bg-rose-50 dark:hover:bg-[rgba(241,91,108,0.12)] transition-colors cursor-pointer"
                           aria-label="Delete entry"
                         >
-                          <Trash2 className="w-3.5 h-3.5 text-rose-500/80 hover:text-rose-600" />
+                          <Trash2 className="w-3.5 h-3.5 text-rose-500/80 dark:text-[#F15B6C]/80 hover:text-rose-600 dark:hover:text-[#F15B6C]" />
                         </button>
                       </Tooltip>
                     )}
@@ -372,20 +377,20 @@ export const ProductLogTable: React.FC<ProductLogTableProps> = ({
                 </div>
 
                 {/* Mobile View Card (<sm) */}
-                <div className="sm:hidden p-3.5 space-y-2.5 hover:bg-stone-50/50 dark:hover:bg-neutral-900/30 transition-colors">
+                <div className="sm:hidden p-3.5 space-y-2.5 hover:bg-stone-50/50 dark:hover:bg-[#151D2A]/40 transition-colors">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <h4 className="font-bold text-sm text-slate-900 dark:text-white font-display">
+                        <h4 className="font-bold text-sm text-slate-900 dark:text-[#F1F5F9] font-display">
                           {item.productName}
                         </h4>
-                        <span className="px-1.5 py-0.5 rounded text-[9px] font-medium bg-stone-100 dark:bg-neutral-900 text-slate-600 dark:text-slate-300 border border-stone-200/60 dark:border-neutral-800 shrink-0">
+                        <span className="px-1.5 py-0.5 rounded text-[9px] font-medium bg-stone-100 dark:bg-[#151D2A] text-slate-600 dark:text-[#A7B2C4] border border-stone-200/60 dark:border-[#202A3A] shrink-0">
                           {item.category || 'General'}
                         </span>
                       </div>
                       {item.additionalInfo && (
-                        <p className="text-[11px] text-slate-600 dark:text-slate-300 mt-1 line-clamp-2">
-                          <span className="font-semibold text-slate-400 text-[9px] uppercase tracking-wider mr-1">
+                        <p className="text-[11px] text-slate-600 dark:text-[#A7B2C4] mt-1 line-clamp-2">
+                          <span className="font-semibold text-slate-400 dark:text-[#718096] text-[9px] uppercase tracking-wider mr-1">
                             Info:
                           </span>
                           {item.additionalInfo}
@@ -394,24 +399,24 @@ export const ProductLogTable: React.FC<ProductLogTableProps> = ({
                     </div>
 
                     <div className="text-right shrink-0">
-                      <span className="text-base font-bold font-mono text-emerald-600 dark:text-emerald-400 tabular-nums">
+                      <span className="text-base font-bold font-mono text-emerald-600 dark:text-[#22C997] tabular-nums">
                         {formatRupees(item.price)}
                       </span>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between pt-2 border-t border-stone-100 dark:border-neutral-900 text-[11px] text-slate-500">
-                    <div className="flex items-center gap-1 font-mono text-slate-600 dark:text-slate-400">
-                      <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                  <div className="flex items-center justify-between pt-2 border-t border-stone-100 dark:border-[#202A3A] text-[11px] text-slate-500 dark:text-[#718096]">
+                    <div className="flex items-center gap-1 font-mono text-slate-600 dark:text-[#A7B2C4]">
+                      <Clock className="w-3.5 h-3.5 text-slate-400 dark:text-[#718096] shrink-0" />
                       <span>{item.date}</span>
-                      <span className="text-slate-400 ml-1">{item.time}</span>
+                      <span className="text-slate-400 dark:text-[#718096] ml-1">{item.time}</span>
                     </div>
 
                     <div className="flex items-center gap-1">
                       <button
                         type="button"
                         onClick={() => onEditProduct(item)}
-                        className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-slate-700 dark:text-slate-300 bg-stone-100 dark:bg-neutral-900 active:scale-95 text-[11px] font-semibold"
+                        className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-slate-700 dark:text-[#F1F5F9] bg-stone-100 dark:bg-[#151D2A] active:scale-95 text-[11px] font-semibold border border-transparent dark:border-[#202A3A]"
                       >
                         <Edit3 className="w-3.5 h-3.5" />
                         <span>Edit</span>
@@ -419,7 +424,7 @@ export const ProductLogTable: React.FC<ProductLogTableProps> = ({
                       <button
                         type="button"
                         onClick={() => onDuplicateProduct(item)}
-                        className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-slate-700 dark:text-slate-300 bg-stone-100 dark:bg-neutral-900 active:scale-95 text-[11px] font-semibold"
+                        className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-slate-700 dark:text-[#F1F5F9] bg-stone-100 dark:bg-[#151D2A] active:scale-95 text-[11px] font-semibold border border-transparent dark:border-[#202A3A]"
                       >
                         <Copy className="w-3.5 h-3.5" />
                         <span>Copy</span>
@@ -428,7 +433,7 @@ export const ProductLogTable: React.FC<ProductLogTableProps> = ({
                         <button
                           type="button"
                           onClick={() => setDeletingProduct(item)}
-                          className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 active:scale-95 text-[11px] font-semibold"
+                          className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-rose-600 dark:text-[#F15B6C] bg-rose-50 dark:bg-[rgba(241,91,108,0.12)] active:scale-95 text-[11px] font-semibold border border-transparent dark:border-[rgba(241,91,108,0.25)]"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                           <span>Delete</span>
@@ -443,7 +448,7 @@ export const ProductLogTable: React.FC<ProductLogTableProps> = ({
         )}
 
         {/* Footer Summary */}
-        <div className="px-4 sm:px-5 py-3 border-t border-stone-200/80 dark:border-neutral-800 bg-stone-50/50 dark:bg-neutral-900/40 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+        <div className="px-4 sm:px-5 py-3 border-t border-stone-200/80 dark:border-[#202A3A] bg-stone-50/50 dark:bg-[#151D2A]/50 flex items-center justify-between text-xs text-slate-500 dark:text-[#718096]">
           <span>
             Showing {filteredProducts.length} of {products.length} logged products
           </span>
