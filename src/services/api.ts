@@ -9,15 +9,18 @@ export async function fetchGlobalSheets(): Promise<Sheet[] | null> {
   try {
     const res = await fetch(API_URL);
     if (res.ok) {
-      const data = await res.json();
-      if (Array.isArray(data) && data.length > 0) {
-        // Cache to localStorage for offline fallback
-        try {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-        } catch (e) {
-          console.error(e);
+      const contentType = res.headers.get('content-type') || '';
+      if (contentType.includes('application/json')) {
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) {
+          // Cache to localStorage for offline fallback
+          try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+          } catch (e) {
+            console.error(e);
+          }
+          return data;
         }
-        return data;
       }
     }
   } catch (e) {

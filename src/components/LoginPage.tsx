@@ -36,12 +36,18 @@ export const LoginPage: React.FC<LoginPageProps> = ({
         body: JSON.stringify({ username: username.trim(), password }),
       });
 
-      const data = await res.json();
-      if (res.ok && data.success && data.user) {
-        onLoginSuccess(data.user);
-        return;
+      const contentType = res.headers.get('content-type') || '';
+      if (contentType.includes('application/json')) {
+        const data = await res.json();
+        if (res.ok && data.success && data.user) {
+          onLoginSuccess(data.user);
+          return;
+        } else {
+          setErrorMsg(data.error || 'Invalid username or password.');
+          return;
+        }
       } else {
-        setErrorMsg(data.error || 'Invalid username or password.');
+        throw new Error(`Server returned non-JSON response (status ${res.status})`);
       }
     } catch (err) {
       console.warn('Backend login endpoint unavailable, attempting fallback check:', err);

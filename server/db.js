@@ -9,7 +9,9 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const dataDir = path.resolve(__dirname, 'data');
+const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+const bundledDataDir = path.resolve(__dirname, 'data');
+const dataDir = isServerless ? path.join('/tmp', 'eyevista-data') : bundledDataDir;
 const filePath = path.join(dataDir, 'sheets.json');
 const usersFilePath = path.join(dataDir, 'users.json');
 
@@ -96,14 +98,36 @@ const DEFAULT_INITIAL_USERS = [
 
 // Ensure local backup directory and files exist
 const ensureLocalDataFiles = () => {
-  if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir, { recursive: true });
-  }
-  if (!fs.existsSync(filePath)) {
-    fs.writeFileSync(filePath, JSON.stringify(DEFAULT_INITIAL_SHEETS, null, 2), 'utf-8');
-  }
-  if (!fs.existsSync(usersFilePath)) {
-    fs.writeFileSync(usersFilePath, JSON.stringify(DEFAULT_INITIAL_USERS, null, 2), 'utf-8');
+  try {
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+    if (!fs.existsSync(filePath)) {
+      const bundledSheets = path.join(bundledDataDir, 'sheets.json');
+      if (fs.existsSync(bundledSheets)) {
+        try {
+          fs.copyFileSync(bundledSheets, filePath);
+        } catch (e) {
+          fs.writeFileSync(filePath, JSON.stringify(DEFAULT_INITIAL_SHEETS, null, 2), 'utf-8');
+        }
+      } else {
+        fs.writeFileSync(filePath, JSON.stringify(DEFAULT_INITIAL_SHEETS, null, 2), 'utf-8');
+      }
+    }
+    if (!fs.existsSync(usersFilePath)) {
+      const bundledUsers = path.join(bundledDataDir, 'users.json');
+      if (fs.existsSync(bundledUsers)) {
+        try {
+          fs.copyFileSync(bundledUsers, usersFilePath);
+        } catch (e) {
+          fs.writeFileSync(usersFilePath, JSON.stringify(DEFAULT_INITIAL_USERS, null, 2), 'utf-8');
+        }
+      } else {
+        fs.writeFileSync(usersFilePath, JSON.stringify(DEFAULT_INITIAL_USERS, null, 2), 'utf-8');
+      }
+    }
+  } catch (err) {
+    console.warn('Local data file setup warning (falling back to memory):', err?.message);
   }
 };
 

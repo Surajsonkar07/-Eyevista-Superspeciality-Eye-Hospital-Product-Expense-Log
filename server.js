@@ -28,14 +28,17 @@ app.use(express.json());
 // Initialize MongoDB connection on server boot
 connectDB();
 
+// Router for all API routes (allows mounting with or without /api prefix)
+const apiRouter = express.Router();
+
 // DB Status check
-app.get('/api/db-status', async (req, res) => {
+apiRouter.get('/db-status', async (req, res) => {
   await connectDB();
   res.json(getDbStatus());
 });
 
 // --- SHEETS ROUTES ---
-app.get('/api/sheets', async (req, res) => {
+apiRouter.get('/sheets', async (req, res) => {
   try {
     const data = await getSheets();
     res.json(data);
@@ -44,7 +47,7 @@ app.get('/api/sheets', async (req, res) => {
   }
 });
 
-app.post('/api/sheets', async (req, res) => {
+apiRouter.post('/sheets', async (req, res) => {
   try {
     const sheets = req.body;
     if (!Array.isArray(sheets)) {
@@ -58,7 +61,7 @@ app.post('/api/sheets', async (req, res) => {
 });
 
 // --- AUTH & USER MANAGEMENT ROUTES ---
-app.post('/api/auth/login', async (req, res) => {
+apiRouter.post('/auth/login', async (req, res) => {
   try {
     const { username, password } = req.body;
     if (!username || !password) {
@@ -74,7 +77,7 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
-app.get('/api/users', async (req, res) => {
+apiRouter.get('/users', async (req, res) => {
   try {
     const users = await getUsers();
     // Return sanitized users
@@ -85,7 +88,7 @@ app.get('/api/users', async (req, res) => {
   }
 });
 
-app.post('/api/users', async (req, res) => {
+apiRouter.post('/users', async (req, res) => {
   try {
     const { username, password, fullName, role, department } = req.body;
     if (!username || !password || !fullName) {
@@ -98,7 +101,7 @@ app.post('/api/users', async (req, res) => {
   }
 });
 
-app.put('/api/users/:id', async (req, res) => {
+apiRouter.put('/users/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const updates = req.body;
@@ -109,7 +112,7 @@ app.put('/api/users/:id', async (req, res) => {
   }
 });
 
-app.delete('/api/users/:id', async (req, res) => {
+apiRouter.delete('/users/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const updatedUsers = await deleteUser(id);
@@ -119,17 +122,25 @@ app.delete('/api/users/:id', async (req, res) => {
   }
 });
 
-// Serve dist static assets in production
-const distDir = path.resolve(__dirname, 'dist');
-if (fs.existsSync(distDir)) {
-  app.use(express.static(distDir));
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(distDir, 'index.html'));
+// Mount router on both /api and / to seamlessly support direct calls and rewrites
+app.use('/api', apiRouter);
+app.use('/', apiRouter);
+
+// Serve dist static assets in local production (not in Vercel serverless where Vercel CDN serves static assets)
+if (!process.env.VERCEL) {
+  const distDir = path.resolve(__dirname, 'dist');
+  if (fs.existsSync(distDir)) {
+    app.use(express.static(distDir));
+    app.get('*', (req, res) => {
+      res.sendFile(path.join(distDir, 'index.html'));
+    });
+  }
+
+  app.listen(PORT, () => {
+    console.log(`Eyevista Expense Dashboard server running on port ${PORT}`);
   });
 }
 
-app.listen(PORT, () => {
-  console.log(`Eyevista Expense Dashboard server running on port ${PORT}`);
-});
+export default app;
 
 
