@@ -18,6 +18,51 @@
     <script>
       (function() {
         try {
+          // Redirect deprecated 'unload' event listener to 'pagehide' so Chrome Permissions-Policy doesn't log violations
+          const origAddEventListener = EventTarget.prototype.addEventListener;
+          EventTarget.prototype.addEventListener = function(type, listener, options) {
+            if (type === 'unload') {
+              return origAddEventListener.call(this, 'pagehide', listener, options);
+            }
+            return origAddEventListener.call(this, type, listener, options);
+          };
+
+          const origRemoveEventListener = EventTarget.prototype.removeEventListener;
+          EventTarget.prototype.removeEventListener = function(type, listener, options) {
+            if (type === 'unload') {
+              return origRemoveEventListener.call(this, 'pagehide', listener, options);
+            }
+            return origRemoveEventListener.call(this, type, listener, options);
+          };
+
+          // Filter third-party chrome extension noise & unload deprecation violation logs from console
+          const origWarn = console.warn;
+          console.warn = function(...args) {
+            if (typeof args[0] === 'string' && (args[0].includes('unload is not allowed') || args[0].includes('Permissions policy violation') || args[0].includes('chrome-extension://'))) {
+              return;
+            }
+            return origWarn.apply(console, args);
+          };
+
+          const origError = console.error;
+          console.error = function(...args) {
+            if (typeof args[0] === 'string' && (args[0].includes('chrome-extension://') || args[0].includes('extension-loader.js') || args[0].includes('web_accessible_resources'))) {
+              return;
+            }
+            return origError.apply(console, args);
+          };
+
+          window.addEventListener('error', function(e) {
+            if (e.filename && (e.filename.includes('chrome-extension://') || e.filename.includes('extension-loader.js'))) {
+              e.stopImmediatePropagation();
+              e.preventDefault();
+            }
+          }, true);
+        } catch (e) {}
+      })();
+
+      (function() {
+        try {
           var saved = localStorage.getItem('eyevista_theme');
           if (saved === 'dark' || (!saved && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');

@@ -45,25 +45,41 @@ export const SheetTabs: React.FC<SheetTabsProps> = ({
   const [editingBudgetId, setEditingBudgetId] = useState<string | null>(null);
   const [budgetInput, setBudgetInput] = useState<string>('');
   const [openMenuSheetId, setOpenMenuSheetId] = useState<string | null>(null);
+  const [menuPosition, setMenuPosition] = useState<{ top: number; right: number } | null>(null);
 
   const tabsContainerRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   const activeSheet = sheets.find((s) => s.id === activeSheetId) || sheets[0] || null;
+  const activeMenuSheet = sheets.find((s) => s.id === openMenuSheetId);
 
-  // Close dropdown on outside click
+  // Close dropdown on outside click or scroll
   useEffect(() => {
     const handleOutside = (e: MouseEvent) => {
       const target = e.target as Node;
       if (dropdownRef.current && !dropdownRef.current.contains(target)) {
         setIsDropdownOpen(false);
       }
-      if (openMenuSheetId) {
+      if (menuRef.current && !menuRef.current.contains(target)) {
         setOpenMenuSheetId(null);
+        setMenuPosition(null);
       }
     };
+
+    const handleScroll = () => {
+      if (openMenuSheetId) {
+        setOpenMenuSheetId(null);
+        setMenuPosition(null);
+      }
+    };
+
     document.addEventListener('mousedown', handleOutside);
-    return () => document.removeEventListener('mousedown', handleOutside);
+    window.addEventListener('scroll', handleScroll, true);
+    return () => {
+      document.removeEventListener('mousedown', handleOutside);
+      window.removeEventListener('scroll', handleScroll, true);
+    };
   }, [openMenuSheetId]);
 
   const handleStartCreate = () => {
@@ -294,9 +310,20 @@ export const SheetTabs: React.FC<SheetTabsProps> = ({
               >
                 <button
                   type="button"
-                  onClick={() =>
-                    setOpenMenuSheetId(openMenuSheetId === sheet.id ? null : sheet.id)
-                  }
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (openMenuSheetId === sheet.id) {
+                      setOpenMenuSheetId(null);
+                      setMenuPosition(null);
+                    } else {
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      setMenuPosition({
+                        top: rect.bottom + 6,
+                        right: Math.max(10, window.innerWidth - rect.right),
+                      });
+                      setOpenMenuSheetId(sheet.id);
+                    }
+                  }}
                   title="Sheet Options Menu"
                   className={`p-1 rounded-md transition-all cursor-pointer ${
                     openMenuSheetId === sheet.id
@@ -310,51 +337,6 @@ export const SheetTabs: React.FC<SheetTabsProps> = ({
                 >
                   <MoreVertical className="w-3.5 h-3.5" />
                 </button>
-
-                {/* Popover Sheet Actions Menu */}
-                {openMenuSheetId === sheet.id && (
-                  <div className="absolute right-0 top-full mt-1 w-36 rounded-xl bg-white dark:bg-[#111722] border border-stone-200 dark:border-[#202A3A] shadow-xl dark:shadow-[0_12px_30px_rgba(0,0,0,0.30)] p-1 space-y-0.5 z-40 animate-fade-in text-left">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        handleStartRename(sheet);
-                        setOpenMenuSheetId(null);
-                      }}
-                      className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-[#F1F5F9] hover:bg-stone-100 dark:hover:bg-[#151D2A] transition-colors cursor-pointer"
-                    >
-                      <Edit2 className="w-3.5 h-3.5 text-blue-600 dark:text-[#4F7CFF]" />
-                      <span>Rename</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        onDuplicateSheet(sheet.id);
-                        setOpenMenuSheetId(null);
-                      }}
-                      className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-[#F1F5F9] hover:bg-stone-100 dark:hover:bg-[#151D2A] transition-colors cursor-pointer"
-                    >
-                      <Copy className="w-3.5 h-3.5 text-indigo-600 dark:text-[#638DFF]" />
-                      <span>Duplicate</span>
-                    </button>
-
-                    {onDeleteSheet && sheets.length > 1 && (
-                      <div className="pt-0.5 border-t border-stone-100 dark:border-[#202A3A]">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setDeletingSheet(sheet);
-                            setOpenMenuSheetId(null);
-                          }}
-                          className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium text-rose-600 dark:text-[#F15B6C] hover:bg-rose-50 dark:hover:bg-[rgba(241,91,108,0.12)] transition-colors cursor-pointer"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                          <span>Delete</span>
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
               </div>
             </div>
           );
@@ -402,6 +384,64 @@ export const SheetTabs: React.FC<SheetTabsProps> = ({
           </button>
         )}
       </div>
+
+      {/* Popover Sheet Actions Menu positioned outside overflow container */}
+      {openMenuSheetId && menuPosition && activeMenuSheet && (
+        <div
+          ref={menuRef}
+          style={{
+            position: 'fixed',
+            top: `${menuPosition.top}px`,
+            right: `${menuPosition.right}px`,
+            zIndex: 9999,
+          }}
+          className="w-36 rounded-xl bg-white dark:bg-[#151D2A] border border-stone-200 dark:border-[#202A3A] shadow-2xl dark:shadow-[0_12px_30px_rgba(0,0,0,0.60)] p-1 space-y-0.5 animate-fade-in text-left backdrop-blur-md"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            type="button"
+            onClick={() => {
+              handleStartRename(activeMenuSheet);
+              setOpenMenuSheetId(null);
+              setMenuPosition(null);
+            }}
+            className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-[#F1F5F9] hover:bg-stone-100 dark:hover:bg-[#1A2436] transition-colors cursor-pointer"
+          >
+            <Edit2 className="w-3.5 h-3.5 text-blue-600 dark:text-[#4F7CFF]" />
+            <span>Rename</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              onDuplicateSheet(activeMenuSheet.id);
+              setOpenMenuSheetId(null);
+              setMenuPosition(null);
+            }}
+            className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-700 dark:text-[#F1F5F9] hover:bg-stone-100 dark:hover:bg-[#1A2436] transition-colors cursor-pointer"
+          >
+            <Copy className="w-3.5 h-3.5 text-indigo-600 dark:text-[#638DFF]" />
+            <span>Duplicate</span>
+          </button>
+
+          {onDeleteSheet && sheets.length > 1 && (
+            <div className="pt-0.5 border-t border-stone-100 dark:border-[#202A3A]">
+              <button
+                type="button"
+                onClick={() => {
+                  setDeletingSheet(activeMenuSheet);
+                  setOpenMenuSheetId(null);
+                  setMenuPosition(null);
+                }}
+                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium text-rose-600 dark:text-[#F15B6C] hover:bg-rose-50 dark:hover:bg-[rgba(241,91,108,0.12)] transition-colors cursor-pointer"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Delete</span>
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Confirmation Modal before sheet deletion */}
       <ConfirmDeleteModal
