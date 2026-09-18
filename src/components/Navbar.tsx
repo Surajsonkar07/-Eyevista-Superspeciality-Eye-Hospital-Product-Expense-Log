@@ -18,6 +18,7 @@ import {
   User as UserIcon,
   Database,
   SlidersHorizontal,
+  Smartphone,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { User } from '../types';
@@ -61,8 +62,54 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [isThemeSubmenuOpen, setIsThemeSubmenuOpen] = useState(false);
   const [isViewSubmenuOpen, setIsViewSubmenuOpen] = useState(false);
 
+  // PWA install state
+  const [installPrompt, setInstallPrompt] = useState<any>(null);
+  const [isInstalled, setIsInstalled] = useState(false);
+  const [showIosGuide, setShowIosGuide] = useState(false);
+
   const profileMenuRef = useRef<HTMLDivElement>(null);
   const actionsMenuRef = useRef<HTMLDivElement>(null);
+
+  // Check standalone mode and listen for PWA install prompt
+  useEffect(() => {
+    if (window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone) {
+      setIsInstalled(true);
+    }
+
+    const handlePrompt = (e: any) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+    };
+
+    window.addEventListener('beforeinstallprompt', handlePrompt);
+    window.addEventListener('appinstalled', () => {
+      setIsInstalled(true);
+      setInstallPrompt(null);
+    });
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handlePrompt);
+    };
+  }, []);
+
+  const handleInstallClick = () => {
+    if (installPrompt) {
+      installPrompt.prompt();
+      installPrompt.userChoice.then((choiceResult: any) => {
+        if (choiceResult.outcome === 'accepted') {
+          setIsInstalled(true);
+        }
+        setInstallPrompt(null);
+      });
+    } else {
+      const isIos = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
+      if (isIos) {
+        setShowIosGuide(true);
+      } else {
+        alert("To install Eyevista app: tap your browser menu (⋮ or Share) and select 'Install app' or 'Add to Home screen'.");
+      }
+    }
+  };
 
   // Close menus on outside click
   useEffect(() => {
@@ -312,6 +359,35 @@ export const Navbar: React.FC<NavbarProps> = ({
                         </AnimatePresence>
                       </div>
                     )}
+
+                    {/* Install Mobile App (PWA) Option */}
+                    {!isInstalled && (
+                      <div className="pt-1 border-t border-stone-100 dark:border-[#202A3A]">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsActionsMenuOpen(false);
+                            handleInstallClick();
+                          }}
+                          className="w-full flex items-start gap-2.5 px-2.5 py-2 rounded-xl text-left hover:bg-stone-100 dark:hover:bg-[#151D2A] transition-all cursor-pointer group"
+                        >
+                          <div className="w-7 h-7 rounded-lg bg-indigo-50 dark:bg-[rgba(99,141,255,0.12)] text-indigo-600 dark:text-[#638DFF] border border-transparent dark:border-[rgba(99,141,255,0.25)] flex items-center justify-center shrink-0 mt-0.5">
+                            <Smartphone className="w-3.5 h-3.5" />
+                          </div>
+                          <div>
+                            <p className="text-xs font-semibold text-slate-800 dark:text-[#F1F5F9] group-hover:text-blue-600 dark:group-hover:text-[#4F7CFF] flex items-center gap-1.5">
+                              <span>Install Mobile App</span>
+                              <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 font-mono font-bold uppercase">
+                                PWA
+                              </span>
+                            </p>
+                            <p className="text-[10px] text-slate-500 dark:text-[#718096]">
+                              Add to home screen on phone
+                            </p>
+                          </div>
+                        </button>
+                      </div>
+                    )}
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -538,6 +614,48 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
       </div>
+
+      {/* iOS PWA Installation Guide Modal */}
+      {showIosGuide && (
+        <div
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-3 animate-fade-in"
+          onClick={() => setShowIosGuide(false)}
+        >
+          <div
+            className="w-full max-w-sm bg-white dark:bg-[#151D2A] border border-stone-200 dark:border-[#202A3A] rounded-2xl p-5 shadow-2xl space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-[#1A2A4A] flex items-center justify-center text-blue-600 dark:text-[#4F7CFF] shrink-0">
+                <Smartphone className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-[#F1F5F9]">
+                  Install Eyevista on iPhone / iPad
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-[#718096]">
+                  Use as a full-screen mobile app
+                </p>
+              </div>
+            </div>
+
+            <ol className="text-xs text-slate-700 dark:text-[#A7B2C4] space-y-2 list-decimal list-inside pl-1 bg-stone-50 dark:bg-[#0D131E] p-3 rounded-xl border border-stone-200/80 dark:border-[#202A3A]">
+              <li>Open this page in <strong className="text-slate-900 dark:text-white">Safari</strong></li>
+              <li>Tap the <strong className="text-slate-900 dark:text-white">Share</strong> button at bottom (square with arrow ↑)</li>
+              <li>Scroll down and tap <strong className="text-slate-900 dark:text-white">'Add to Home Screen'</strong></li>
+              <li>Tap <strong className="text-blue-600 dark:text-[#4F7CFF]">'Add'</strong> in top-right corner</li>
+            </ol>
+
+            <button
+              type="button"
+              onClick={() => setShowIosGuide(false)}
+              className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold cursor-pointer transition-colors"
+            >
+              Got It
+            </button>
+          </div>
+        </div>
+      )}
     </header>
   );
 };

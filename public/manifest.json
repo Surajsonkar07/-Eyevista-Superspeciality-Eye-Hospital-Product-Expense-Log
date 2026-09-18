@@ -1,0 +1,46 @@
+{
+  "name": "Eyevista Superspeciality Eye Hospital",
+  "short_name": "Eyevista",
+  "description": "Eyevista Superspeciality Eye Hospital - Product & Expense Log Management",
+  "start_url": "/",
+  "id": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0B0F17",
+  "theme_color": "#0B0F17",
+  "categories": ["medical", "business", "productivity"],
+  "icons": [
+    {
+      "src": "/eyevista-logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/eyevista-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/eyevista-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Add Expense Entry",
+      "short_name": "Add Entry",
+      "description": "Quickly log a hospital product or expense",
+      "url": "/",
+      "icons": [
+        {
+          "src": "/eyevista-logo.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ]
+}
